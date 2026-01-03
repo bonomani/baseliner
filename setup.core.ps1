@@ -1147,7 +1147,7 @@ if (Test-Path $SelectedPath) {
     throw
 }
 
-UpdatePayload:
+:UpdatePayload
     if ($HasPayload) {
         try {
             if ($AppPayloadItems -and $AppPayloadItems.Count -gt 0) {
