@@ -80,7 +80,8 @@ foreach ($item in $copyTargets) {
 
 if ($Version) {
     $versionFile = Join-Path $updateRoot "VERSION.txt"
-    Set-Content -Path $versionFile -Value $Version
+    $tagVersion = if ($Version -match '^v') { $Version } else { "v$Version" }
+    Set-Content -Path $versionFile -Value $tagVersion
     Write-Output "Wrote version: $versionFile"
 }
 

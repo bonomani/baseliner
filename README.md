@@ -49,7 +49,7 @@ $zip=".\\baseliner.zip";Invoke-WebRequest -Uri "https://github.com/bonomani/base
 
 Install (run from the same folder):
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\Baseliner\setup.ps1
+Set-Location .\Baseliner; powershell -ExecutionPolicy Bypass -File .\setup.ps1
 ```
 
 Download + extract + install (one line):
@@ -66,6 +66,7 @@ Build the update ZIP:
 ```powershell
 .\app\tools\Build-Update.ps1 -Clean -Version "1.0.0" -Zip -UsePayloadFolder
 ```
+`VERSION.txt` is written as `v1.0.0` to match the GitHub tag format.
 
 Push changes to GitHub:
 ```powershell

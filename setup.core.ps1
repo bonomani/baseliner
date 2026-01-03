@@ -298,6 +298,57 @@ function Invoke-ApiJson {
     }
 }
 
+function Copy-UpdatePayloadFromZip {
+    param (
+        [string]$ZipPath,
+        [string]$DestinationPath
+    )
+    if (-not (Test-Path $ZipPath)) { return $false }
+
+    $tempRoot = Join-Path $Root ("update_extract_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    New-Item -ItemType Directory -Force -Path $tempRoot | Out-Null
+    try {
+        Expand-Archive -Path $ZipPath -DestinationPath $tempRoot -Force
+        $updateSource = Get-ChildItem -Path $tempRoot -Directory -Recurse -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -eq "update" } |
+            Select-Object -First 1
+        if (-not $updateSource) {
+            throw "Update folder not found in package"
+        }
+        if (-not (Test-Path $DestinationPath)) {
+            New-Item -ItemType Directory -Force -Path $DestinationPath | Out-Null
+        }
+        Get-ChildItem -Path $DestinationPath -Force -ErrorAction SilentlyContinue | ForEach-Object {
+            Remove-Item -Path $_.FullName -Recurse -Force
+        }
+        Copy-Item -Path (Join-Path $updateSource.FullName "*") -Destination $DestinationPath -Recurse -Force -ErrorAction Stop
+        return $true
+    } finally {
+        if (Test-Path $tempRoot) {
+            Remove-Item -Path $tempRoot -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
+
+function Copy-RootFilesFromUpdateIfChanged {
+    param (
+        [string]$UpdateRoot,
+        [string]$DestinationRoot
+    )
+    $files = @("setup.core.ps1", "setup.ps1", "README.md", ".gitignore", ".markdownlint.json")
+    foreach ($file in $files) {
+        $src = Join-Path $UpdateRoot $file
+        if (-not (Test-Path $src)) { continue }
+        $dst = Join-Path $DestinationRoot $file
+        if (Test-Path $dst) {
+            $srcHash = Get-FileSha256 -Path $src
+            $dstHash = Get-FileSha256 -Path $dst
+            if ($srcHash -eq $dstHash) { continue }
+        }
+        Copy-Item -Path $src -Destination $dst -Force
+    }
+}
+
 function Get-LatestRelease {
     return Invoke-ApiJson -Url "$RepoApiBase/releases/latest"
 }
@@ -312,11 +363,6 @@ function Invoke-UpdateZipDownload {
         Remove-Item -Path $UpdateZipPath -Force
     }
     Invoke-WebRequest -Uri $Url -OutFile $UpdateZipPath -UseBasicParsing
-}
-
-function Expand-UpdateZip {
-    if (-not (Test-Path $UpdateZipPath)) { return }
-    Expand-Archive -Path $UpdateZipPath -DestinationPath (Join-Path $Root "update") -Force
 }
 
 $setupState = Get-SetupState
@@ -334,16 +380,28 @@ if ($latestRelease -and $latestCommit) {
     $commitSha = $latestCommit.sha
     $isNewRelease = $releaseTag -and ($releaseTag -ne $setupState.CoreReleaseTag)
     $isNewCommit = $commitSha -and ($commitSha -ne $setupState.CoreCommitSha)
+    $updateVersionPath = Join-Path $Root "update\VERSION.txt"
+    $hasMatchingUpdateVersion = $false
+    if (Test-Path $updateVersionPath) {
+        $localVersion = (Get-Content -Path $updateVersionPath -Raw).Trim()
+        if ($localVersion -and ($localVersion -eq $releaseTag)) {
+            $hasMatchingUpdateVersion = $true
+        }
+    }
 
-    if ($isNewRelease -or $isNewCommit) {
+    if (($isNewRelease -or $isNewCommit) -and -not $hasMatchingUpdateVersion) {
         Write-Output "Update available (release or commit). Downloading..."
         $zipUrl = $latestRelease.zipball_url
         if ($zipUrl) {
             Invoke-UpdateZipDownload -Url $zipUrl
-            Expand-UpdateZip
-            $setupState.CoreReleaseTag = $releaseTag
-            $setupState.CoreCommitSha = $commitSha
-            Save-SetupState -State $setupState
+            if (Copy-UpdatePayloadFromZip -ZipPath $UpdateZipPath -DestinationPath (Join-Path $Root "update")) {
+                Copy-RootFilesFromUpdateIfChanged -UpdateRoot (Join-Path $Root "update") -DestinationRoot $Root
+                $setupState.CoreReleaseTag = $releaseTag
+                $setupState.CoreCommitSha = $commitSha
+                Save-SetupState -State $setupState
+                Write-Output "Core update applied. Please re-run setup."
+                exit
+            }
         }
     }
 }
