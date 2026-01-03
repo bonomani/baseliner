@@ -6,7 +6,7 @@ $Root = Get-Location | Select-Object -ExpandProperty Path
 $Self = $MyInvocation.MyCommand.Definition
 $New  = Join-Path $Root "update\setup.core.ps1"
 $SetupFile = Join-Path $Root "data\db\setup.json"
-$RepoApiBase = "https://api.github.com/repos/FAKE_OWNER/FAKE_REPO"
+$RepoApiBase = "https://api.github.com/repos/bonomani/baseliner"
 $UpdateZipPath = Join-Path $Root "update\package.zip"
 $DefaultCustomProfileZipUrl = "https://example.com/custom_profiles.zip"
 
