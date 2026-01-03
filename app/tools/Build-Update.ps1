@@ -91,6 +91,10 @@ if ($Version) {
     $versionFile = Join-Path $updateRoot "VERSION.txt"
     Set-Content -Path $versionFile -Value $tagVersion
     Write-Output "Wrote version: $versionFile"
+
+    $latestFile = Join-Path $buildRoot "latest.txt"
+    Set-Content -Path $latestFile -Value $tagVersion
+    Write-Output "Wrote latest tag: $latestFile"
 }
 
 if ($Zip) {

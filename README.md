@@ -73,6 +73,11 @@ Upload both the ZIP and its `.sha256` to the GitHub release.
 gh release upload v1.0.0 build\package_v1.0.0.zip build\package_v1.0.0.zip.sha256 --clobber
 ```
 
+Upload the latest tag pointer:
+```powershell
+gh release upload v1.0.0 build\latest.txt --clobber
+```
+
 Push changes to GitHub:
 ```powershell
 git add .

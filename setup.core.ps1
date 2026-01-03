@@ -6,7 +6,8 @@ $Root = Get-Location | Select-Object -ExpandProperty Path
 $Self = $MyInvocation.MyCommand.Definition
 $New  = Join-Path $Root "update\setup.core.ps1"
 $SetupFile = Join-Path $Root "data\db\setup.json"
-$RepoApiBase = "https://api.github.com/repos/bonomani/baseliner"
+$RepoWebBase = "https://github.com/bonomani/baseliner"
+$LatestTagUrl = "$RepoWebBase/releases/latest/download/latest.txt"
 $UpdateZipPath = Join-Path $Root "update\package.zip"
 $DefaultCustomProfileZipUrl = "https://example.com/custom_profiles.zip"
 
@@ -65,6 +66,18 @@ function Get-JsonFile {
         Write-Error "Invalid JSON in file: $Path"
         throw
     }
+}
+
+function Get-BackupPath {
+    param ([switch]$Create)
+    if (-not $script:BackupPath) {
+        $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+        $script:BackupPath = Join-Path (Join-Path $Root "backup") $timestamp
+    }
+    if ($Create -and -not (Test-Path $script:BackupPath)) {
+        New-Item -ItemType Directory -Force -Path $script:BackupPath | Out-Null
+    }
+    return $script:BackupPath
 }
 
 function Save-SetupState {
@@ -297,13 +310,6 @@ function Set-SetupStateValue {
     $State | Add-Member -NotePropertyName $Name -NotePropertyValue $Value -Force
 }
 
-function Invoke-ApiJson {
-    param ([string]$Url)
-    return Invoke-RestMethod -Uri $Url -UseBasicParsing -Headers @{
-        "User-Agent" = "Baseliner-Setup"
-    }
-}
-
 function Copy-UpdatePayloadFromZip {
     param (
         [string]$ZipPath,
@@ -347,20 +353,25 @@ function Copy-RootFilesFromUpdateIfChanged {
         if (-not (Test-Path $src)) { continue }
         $dst = Join-Path $DestinationRoot $file
         if (Test-Path $dst) {
-            $srcHash = Get-FileSha256 -Path $src
-            $dstHash = Get-FileSha256 -Path $dst
+            $srcHash = (Get-FileHash -Algorithm SHA256 -Path $src).Hash.ToLower()
+            $dstHash = (Get-FileHash -Algorithm SHA256 -Path $dst).Hash.ToLower()
             if ($srcHash -eq $dstHash) { continue }
         }
         Copy-Item -Path $src -Destination $dst -Force
     }
 }
 
-function Get-LatestRelease {
-    return Invoke-ApiJson -Url "$RepoApiBase/releases/latest"
-}
-
-function Get-LatestCommit {
-    return Invoke-ApiJson -Url "$RepoApiBase/commits/main"
+function Get-LatestTag {
+    if (-not $LatestTagUrl) { return $null }
+    try {
+        $content = (Invoke-WebRequest -Uri $LatestTagUrl -UseBasicParsing).Content
+        if ($null -eq $content) { return $null }
+        $tag = ($content -replace '^\uFEFF', '').Trim()
+        if (-not $tag) { return $null }
+        return $tag
+    } catch {
+        throw
+    }
 }
 
 function Invoke-UpdateZipDownload {
@@ -381,57 +392,28 @@ function Invoke-UpdateShaDownload {
     return $shaPath
 }
 
-function Get-ReleaseAsset {
-    param (
-        $Release,
-        [string]$NameSuffix
-    )
-    if (-not $Release -or -not $Release.assets) { return $null }
-    return $Release.assets | Where-Object { $_.name -and $_.name.ToLower().EndsWith($NameSuffix.ToLower()) } |
-        Select-Object -First 1
-}
-
-function Get-ReleaseZipAsset {
-    param ($Release)
-    if (-not $Release -or -not $Release.assets) { return $null }
-    return $Release.assets | Where-Object {
-        $_.name -and $_.name.ToLower().EndsWith(".zip") -and ($_.name -notmatch 'source code')
-    } | Select-Object -First 1
-}
-
-function Get-ReleaseAssetByName {
-    param (
-        $Release,
-        [string]$Name
-    )
-    if (-not $Release -or -not $Release.assets) { return $null }
-    return $Release.assets | Where-Object { $_.name -and ($_.name -ieq $Name) } | Select-Object -First 1
-}
-
 function Read-HashFromFile {
     param ([string]$Path)
     if (-not (Test-Path $Path)) { return $null }
-    $content = (Get-Content -Path $Path -Raw).Trim()
+    $content = (Get-Content -Path $Path -Raw)
+    $content = $content -replace '^\uFEFF', ''
+    $content = $content.Trim()
     if (-not $content) { return $null }
     $firstToken = $content -split '\s+' | Select-Object -First 1
     return $firstToken.ToLower()
 }
 
 $setupState = Get-SetupState
-$latestRelease = $null
-$latestCommit = $null
+$latestTag = $null
 try {
-    $latestRelease = Get-LatestRelease
-    $latestCommit = Get-LatestCommit
+    $latestTag = Get-LatestTag
 } catch {
-    Write-Output "Update check failed (network or API). Continuing."
+    Write-Output ("Update check failed (network). Continuing. Details: {0}" -f $_.Exception.Message)
 }
 
-if ($latestRelease -and $latestCommit) {
-    $releaseTag = $latestRelease.tag_name
-    $commitSha = $latestCommit.sha
+if ($latestTag) {
+    $releaseTag = $latestTag
     $isNewRelease = $releaseTag -and ($releaseTag -ne $setupState.CoreReleaseTag)
-    $isNewCommit = $commitSha -and ($commitSha -ne $setupState.CoreCommitSha)
     $updateVersionPath = Join-Path $Root "update\VERSION.txt"
     $hasMatchingUpdateVersion = $false
     if (Test-Path $updateVersionPath) {
@@ -443,36 +425,30 @@ if ($latestRelease -and $latestCommit) {
 
     if ($hasMatchingUpdateVersion) {
         Write-Output "Update already present (VERSION.txt matches latest tag)."
-    } elseif ($isNewRelease -or $isNewCommit) {
-        Write-Output "Update available (release or commit). Downloading..."
+        Set-SetupStateValue -State $setupState -Name "CoreReleaseTag" -Value $releaseTag
+        Set-SetupStateValue -State $setupState -Name "CoreCommitSha" -Value $null
+        Save-SetupState -State $setupState
+    } elseif ($isNewRelease) {
+        Write-Output "Update available (release). Downloading..."
         $zipName = "package_$releaseTag.zip"
-        $zipAsset = Get-ReleaseAssetByName -Release $latestRelease -Name $zipName
-        if (-not $zipAsset) {
-            Write-Error "No ZIP release asset found ($zipName). Aborting update."
-            exit 1
-        }
-        $shaName = "$($zipAsset.name).sha256"
-        $shaAsset = Get-ReleaseAssetByName -Release $latestRelease -Name $shaName
-        if (-not $shaAsset) {
-            Write-Error "No SHA256 asset found for $($zipAsset.name). Aborting update."
-            exit 1
-        }
-        Invoke-UpdateZipDownload -Url $zipAsset.browser_download_url
-        $shaPath = Invoke-UpdateShaDownload -Url $shaAsset.browser_download_url
+        $zipUrl = "$RepoWebBase/releases/download/$releaseTag/$zipName"
+        $shaUrl = "$zipUrl.sha256"
+        Invoke-UpdateZipDownload -Url $zipUrl
+        $shaPath = Invoke-UpdateShaDownload -Url $shaUrl
         $expectedHash = Read-HashFromFile -Path $shaPath
         if (-not $expectedHash) {
             Write-Error "SHA256 file is empty or invalid. Aborting update."
             exit 1
         }
-        $actualHash = Get-FileSha256 -Path $UpdateZipPath
+        $actualHash = (Get-FileHash -Algorithm SHA256 -Path $UpdateZipPath).Hash.ToLower()
         if ($expectedHash -ne $actualHash) {
             Write-Error "Update ZIP hash mismatch. Aborting update."
             exit 1
         }
         if (Copy-UpdatePayloadFromZip -ZipPath $UpdateZipPath -DestinationPath (Join-Path $Root "update")) {
             Copy-RootFilesFromUpdateIfChanged -UpdateRoot (Join-Path $Root "update") -DestinationRoot $Root
-            $setupState.CoreReleaseTag = $releaseTag
-            $setupState.CoreCommitSha = $commitSha
+            Set-SetupStateValue -State $setupState -Name "CoreReleaseTag" -Value $releaseTag
+            Set-SetupStateValue -State $setupState -Name "CoreCommitSha" -Value $null
             Save-SetupState -State $setupState
             Write-Output "Core update applied. Please re-run setup."
             exit
@@ -570,18 +546,6 @@ function Sync-DefaultProfilesFromUpdateAtomic {
     Move-Atomic -StagingPath $staging -DestinationPath $DefaultProfilesPath -BackupPath $backup
 }
 
-function Get-BackupPath {
-    param ([switch]$Create)
-    if (-not $script:BackupPath) {
-        $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-        $script:BackupPath = Join-Path (Join-Path $Root "backup") $timestamp
-    }
-    if ($Create -and -not (Test-Path $script:BackupPath)) {
-        New-Item -ItemType Directory -Force -Path $script:BackupPath | Out-Null
-    }
-    return $script:BackupPath
-}
-
 function Resolve-SelectedProfileSource {
     param ([string]$ProfileName)
     if (-not $ProfileName) { return $null }
@@ -615,11 +579,6 @@ function Get-AvailableProfiles {
     return @($profiles)
 }
 
-function Get-FileSha256 {
-    param ([string]$Path)
-    return (Get-FileHash -Algorithm SHA256 -Path $Path).Hash.ToLower()
-}
-
 function Invoke-CustomProfileDownload {
     param (
         [string]$ZipUrl,
@@ -632,7 +591,7 @@ function Invoke-CustomProfileDownload {
     if (Test-Path $zipPath) { Remove-Item -Path $zipPath -Force }
     Invoke-WebRequest -Uri $ZipUrl -OutFile $zipPath -UseBasicParsing
 
-    $actual = Get-FileSha256 -Path $zipPath
+    $actual = (Get-FileHash -Algorithm SHA256 -Path $zipPath).Hash.ToLower()
     if ($actual -ne $ExpectedSha256.ToLower()) {
         Write-Error "Custom profile ZIP hash mismatch"
         throw "Custom profile ZIP hash mismatch"
