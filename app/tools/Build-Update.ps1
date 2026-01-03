@@ -2,7 +2,8 @@ param (
     [switch]$Clean,
     [switch]$Zip,
     [string]$Version,
-    [switch]$TimestampVersion
+    [switch]$TimestampVersion,
+    [switch]$UsePayloadFolder
 )
 
 Set-StrictMode -Version Latest
@@ -13,7 +14,7 @@ function Resolve-RepoRoot {
     return (Resolve-Path $root).Path
 }
 
-function Ensure-Directory {
+function New-DirectoryIfMissing {
     param ([string]$Path)
     if (-not (Test-Path $Path)) {
         New-Item -ItemType Directory -Force -Path $Path | Out-Null
@@ -29,28 +30,40 @@ function Clear-Directory {
 }
 
 $repoRoot = Resolve-RepoRoot
-$updateRoot = Join-Path $repoRoot "update"
+$buildRoot = Join-Path $repoRoot "build"
+$payloadRoot = if ($UsePayloadFolder) { Join-Path $buildRoot "Baseliner" } else { $buildRoot }
+$updateRoot = Join-Path $payloadRoot "update"
 
 if ($TimestampVersion -and -not $Version) {
     $Version = Get-Date -Format "yyyyMMdd_HHmmss"
 }
 
-Ensure-Directory -Path $updateRoot
-if ($Clean) {
-    Clear-Directory -Path $updateRoot
+New-DirectoryIfMissing -Path $buildRoot
+if ($UsePayloadFolder) {
+    New-DirectoryIfMissing -Path $payloadRoot
 }
+if ($Clean) {
+    Clear-Directory -Path $buildRoot
+    if ($UsePayloadFolder) {
+        New-DirectoryIfMissing -Path $payloadRoot
+    }
+}
+New-DirectoryIfMissing -Path $updateRoot
 
 $copyTargets = @(
-    @{ Source = "app"; Destination = "app" },
-    @{ Source = "test"; Destination = "test" },
-    @{ Source = "profiles_default"; Destination = "profiles_default" },
-    @{ Source = "setup.core.ps1"; Destination = "setup.core.ps1" },
-    @{ Source = "setup.ps1"; Destination = "setup.ps1" }
+    @{ Source = "setup.ps1"; Destination = "setup.ps1"; Root = $payloadRoot },
+    @{ Source = "app"; Destination = "app"; Root = $updateRoot },
+    @{ Source = "test"; Destination = "test"; Root = $updateRoot },
+    @{ Source = "profiles_default"; Destination = "profiles_default"; Root = $updateRoot },
+    @{ Source = "setup.core.ps1"; Destination = "setup.core.ps1"; Root = $updateRoot },
+    @{ Source = "README.md"; Destination = "README.md"; Root = $updateRoot },
+    @{ Source = ".gitignore"; Destination = ".gitignore"; Root = $updateRoot },
+    @{ Source = ".markdownlint.json"; Destination = ".markdownlint.json"; Root = $updateRoot }
 )
 
 foreach ($item in $copyTargets) {
     $src = Join-Path $repoRoot $item.Source
-    $dst = Join-Path $updateRoot $item.Destination
+    $dst = Join-Path $item.Root $item.Destination
 
     if (-not (Test-Path $src)) {
         Write-Warning "Source missing, skipping: $src"
@@ -73,10 +86,10 @@ if ($Version) {
 
 if ($Zip) {
     $zipName = if ($Version) { "package_$Version.zip" } else { "package.zip" }
-    $zipPath = Join-Path $updateRoot $zipName
+    $zipPath = Join-Path $buildRoot $zipName
     if (Test-Path $zipPath) {
         Remove-Item -Path $zipPath -Force
     }
-    Compress-Archive -Path (Join-Path $updateRoot "*") -DestinationPath $zipPath -Force
+    Compress-Archive -Path (Join-Path $buildRoot "*") -DestinationPath $zipPath -Force
     Write-Output "Created ZIP: $zipPath"
 }

@@ -39,9 +39,40 @@ These documents are the source of truth for result reporting and log wording.
 - Windows PowerShell 5.1
 - Administrator privileges for `Admin*` scripts
 
+## Installation
+Replace the URL with your current release asset.
+
+Download + extract (run from any folder):
+```powershell
+$zip=".\\baseliner.zip";Invoke-WebRequest -Uri "https://github.com/bonomani/baseliner/releases/download/v1.0.0/package_1.0.0.zip" -OutFile $zip;Expand-Archive -Path $zip -DestinationPath . -Force
+```
+
+Install (run from the same folder):
+```powershell
+powershell -ExecutionPolicy Bypass -File .\Baseliner\setup.ps1
+```
+
+Download + extract + install (one line):
+```powershell
+$zip=".\\baseliner.zip";Invoke-WebRequest -Uri "https://github.com/bonomani/baseliner/releases/download/v1.0.0/package_1.0.0.zip" -OutFile $zip;Expand-Archive -Path $zip -DestinationPath . -Force;powershell -ExecutionPolicy Bypass -File .\Baseliner\setup.ps1
+```
+
 ## Notes
 - Scripts are configuration-driven and typically load config via `lib/LoadScriptConfig.psm1`.
 - The setup workflow and profile selection live outside `app/` (see `setup.core.ps1`).
+
+## Build and publish
+Build the update ZIP:
+```powershell
+.\app\tools\Build-Update.ps1 -Clean -Version "1.0.0" -Zip -UsePayloadFolder
+```
+
+Push changes to GitHub:
+```powershell
+git add .
+git commit -m "Release v1.0.0"
+git push
+```
 
 ## License
 Add project license info here.
