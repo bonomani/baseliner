@@ -1,0 +1,8 @@
+{
+  "configIncludes": [
+    "profiles_default\\Windows_default\\config.json"
+  ],
+  "resourceIncludes": [
+    "profiles_default\\Windows_default\\resources"
+  ]
+}
