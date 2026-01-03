@@ -44,17 +44,17 @@ Replace the URL with your current release asset.
 
 Download + extract (run from any folder):
 ```powershell
-$zip=".\\baseliner.zip";Invoke-WebRequest -Uri "https://github.com/bonomani/baseliner/releases/download/v1.0.0/package_1.0.0.zip" -OutFile $zip;Expand-Archive -Path $zip -DestinationPath . -Force
+$zip=".\\baseliner.zip";Invoke-WebRequest -Uri "https://github.com/bonomani/baseliner/releases/download/v1.0.0/package_v1.0.0.zip" -OutFile $zip;Expand-Archive -Path $zip -DestinationPath . -Force
 ```
 
 Install (run from the same folder):
 ```powershell
-Set-Location .\Baseliner; powershell -ExecutionPolicy Bypass -File .\setup.ps1
+cd .\Baseliner; powershell -ExecutionPolicy Bypass -File .\setup.ps1
 ```
 
 Download + extract + install (one line):
 ```powershell
-$zip=".\\baseliner.zip";Invoke-WebRequest -Uri "https://github.com/bonomani/baseliner/releases/download/v1.0.0/package_1.0.0.zip" -OutFile $zip;Expand-Archive -Path $zip -DestinationPath . -Force;powershell -ExecutionPolicy Bypass -File .\Baseliner\setup.ps1
+$zip=".\\baseliner.zip";Invoke-WebRequest -Uri "https://github.com/bonomani/baseliner/releases/download/v1.0.0/package_v1.0.0.zip" -OutFile $zip;Expand-Archive -Path $zip -DestinationPath . -Force;powershell -ExecutionPolicy Bypass -File .\Baseliner\setup.ps1
 ```
 
 ## Notes

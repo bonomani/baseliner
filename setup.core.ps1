@@ -19,13 +19,19 @@ if ($Replace) {
 }
 
 if ((Test-Path $New) -and ($New -ne $Self)) {
-    Write-Output "New version of setup.core.ps1 detected"
-    Start-Process powershell -ArgumentList @(
-        "-ExecutionPolicy", "Bypass",
-        "-File", $New,
-        "-Replace", $Self
-    ) -Wait
-    exit
+    $currentHash = (Get-FileHash -Algorithm SHA256 -Path $Self).Hash.ToLower()
+    $newHash = (Get-FileHash -Algorithm SHA256 -Path $New).Hash.ToLower()
+    if ($currentHash -ne $newHash) {
+        Write-Output "New version of setup.core.ps1 detected"
+        Start-Process powershell -ArgumentList @(
+            "-ExecutionPolicy", "Bypass",
+            "-File", $New,
+            "-Replace", $Self
+        ) -Wait
+        exit
+    } else {
+        Write-Output "setup.core.ps1 already up to date"
+    }
 }
 
 # --- Update check (release + commit) ---
