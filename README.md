@@ -69,6 +69,9 @@ Build the update ZIP:
 `VERSION.txt` is written as `v1.0.0` to match the GitHub tag format. The ZIP is named `package_v1.0.0.zip`.
 
 Upload both the ZIP and its `.sha256` to the GitHub release.
+```powershell
+gh release upload v1.0.0 build\package_v1.0.0.zip build\package_v1.0.0.zip.sha256 --clobber
+```
 
 Push changes to GitHub:
 ```powershell
