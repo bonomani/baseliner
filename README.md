@@ -66,7 +66,9 @@ Build the update ZIP:
 ```powershell
 .\app\tools\Build-Update.ps1 -Clean -Version "1.0.0" -Zip -UsePayloadFolder
 ```
-`VERSION.txt` is written as `v1.0.0` to match the GitHub tag format.
+`VERSION.txt` is written as `v1.0.0` to match the GitHub tag format. The ZIP is named `package_v1.0.0.zip`.
+
+Upload both the ZIP and its `.sha256` to the GitHub release.
 
 Push changes to GitHub:
 ```powershell

@@ -365,6 +365,52 @@ function Invoke-UpdateZipDownload {
     Invoke-WebRequest -Uri $Url -OutFile $UpdateZipPath -UseBasicParsing
 }
 
+function Invoke-UpdateShaDownload {
+    param ([string]$Url)
+    $shaPath = "$UpdateZipPath.sha256"
+    if (Test-Path $shaPath) {
+        Remove-Item -Path $shaPath -Force
+    }
+    Invoke-WebRequest -Uri $Url -OutFile $shaPath -UseBasicParsing
+    return $shaPath
+}
+
+function Get-ReleaseAsset {
+    param (
+        $Release,
+        [string]$NameSuffix
+    )
+    if (-not $Release -or -not $Release.assets) { return $null }
+    return $Release.assets | Where-Object { $_.name -and $_.name.ToLower().EndsWith($NameSuffix.ToLower()) } |
+        Select-Object -First 1
+}
+
+function Get-ReleaseZipAsset {
+    param ($Release)
+    if (-not $Release -or -not $Release.assets) { return $null }
+    return $Release.assets | Where-Object {
+        $_.name -and $_.name.ToLower().EndsWith(".zip") -and ($_.name -notmatch 'source code')
+    } | Select-Object -First 1
+}
+
+function Get-ReleaseAssetByName {
+    param (
+        $Release,
+        [string]$Name
+    )
+    if (-not $Release -or -not $Release.assets) { return $null }
+    return $Release.assets | Where-Object { $_.name -and ($_.name -ieq $Name) } | Select-Object -First 1
+}
+
+function Read-HashFromFile {
+    param ([string]$Path)
+    if (-not (Test-Path $Path)) { return $null }
+    $content = (Get-Content -Path $Path -Raw).Trim()
+    if (-not $content) { return $null }
+    $firstToken = $content -split '\s+' | Select-Object -First 1
+    return $firstToken.ToLower()
+}
+
 $setupState = Get-SetupState
 $latestRelease = $null
 $latestCommit = $null
@@ -389,19 +435,41 @@ if ($latestRelease -and $latestCommit) {
         }
     }
 
-    if (($isNewRelease -or $isNewCommit) -and -not $hasMatchingUpdateVersion) {
+    if ($hasMatchingUpdateVersion) {
+        Write-Output "Update already present (VERSION.txt matches latest tag)."
+    } elseif ($isNewRelease -or $isNewCommit) {
         Write-Output "Update available (release or commit). Downloading..."
-        $zipUrl = $latestRelease.zipball_url
-        if ($zipUrl) {
-            Invoke-UpdateZipDownload -Url $zipUrl
-            if (Copy-UpdatePayloadFromZip -ZipPath $UpdateZipPath -DestinationPath (Join-Path $Root "update")) {
-                Copy-RootFilesFromUpdateIfChanged -UpdateRoot (Join-Path $Root "update") -DestinationRoot $Root
-                $setupState.CoreReleaseTag = $releaseTag
-                $setupState.CoreCommitSha = $commitSha
-                Save-SetupState -State $setupState
-                Write-Output "Core update applied. Please re-run setup."
-                exit
-            }
+        $zipName = "package_$releaseTag.zip"
+        $zipAsset = Get-ReleaseAssetByName -Release $latestRelease -Name $zipName
+        if (-not $zipAsset) {
+            Write-Error "No ZIP release asset found ($zipName). Aborting update."
+            exit 1
+        }
+        $shaName = "$($zipAsset.name).sha256"
+        $shaAsset = Get-ReleaseAssetByName -Release $latestRelease -Name $shaName
+        if (-not $shaAsset) {
+            Write-Error "No SHA256 asset found for $($zipAsset.name). Aborting update."
+            exit 1
+        }
+        Invoke-UpdateZipDownload -Url $zipAsset.browser_download_url
+        $shaPath = Invoke-UpdateShaDownload -Url $shaAsset.browser_download_url
+        $expectedHash = Read-HashFromFile -Path $shaPath
+        if (-not $expectedHash) {
+            Write-Error "SHA256 file is empty or invalid. Aborting update."
+            exit 1
+        }
+        $actualHash = Get-FileSha256 -Path $UpdateZipPath
+        if ($expectedHash -ne $actualHash) {
+            Write-Error "Update ZIP hash mismatch. Aborting update."
+            exit 1
+        }
+        if (Copy-UpdatePayloadFromZip -ZipPath $UpdateZipPath -DestinationPath (Join-Path $Root "update")) {
+            Copy-RootFilesFromUpdateIfChanged -UpdateRoot (Join-Path $Root "update") -DestinationRoot $Root
+            $setupState.CoreReleaseTag = $releaseTag
+            $setupState.CoreCommitSha = $commitSha
+            Save-SetupState -State $setupState
+            Write-Output "Core update applied. Please re-run setup."
+            exit
         }
     }
 }
