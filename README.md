@@ -75,7 +75,7 @@ gh release upload v1.0.0 build\package_v1.0.0.zip build\package_v1.0.0.zip.sha25
 
 Upload the latest tag pointer:
 ```powershell
-gh release upload v1.0.0 build\latest.txt --clobber
+gh release upload v1.0.0 build\package_v1.0.0.zip build\package_v1.0.0.zip.sha256 build\latest.txt --clobber
 ```
 This enables `latest.txt` downloads at `.../releases/latest/download/latest.txt` for auto-update.
 
