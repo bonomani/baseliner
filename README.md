@@ -44,7 +44,16 @@ Replace the URL with your current release asset.
 
 Download + extract (run from any folder):
 ```powershell
-$tag=(Get-Content -Raw -Path (Join-Path $env:TEMP "baseliner_latest.txt") -ErrorAction SilentlyContinue);if(-not $tag){Invoke-WebRequest -Uri "https://github.com/bonomani/baseliner/releases/latest/download/latest.txt" -OutFile (Join-Path $env:TEMP "baseliner_latest.txt") -UseBasicParsing; $tag=(Get-Content -Raw -Path (Join-Path $env:TEMP "baseliner_latest.txt")).Trim()};$zip=".\\baseliner.zip";$url="https://github.com/bonomani/baseliner/releases/download/$tag/package_$tag.zip";Invoke-WebRequest -Uri $url -OutFile $zip;Expand-Archive -Path $zip -DestinationPath . -Force
+$tmp = ".\\latest.txt"
+Invoke-WebRequest -Uri "https://github.com/bonomani/baseliner/releases/latest/download/latest.txt" -OutFile $tmp -UseBasicParsing
+$tag = (Get-Content -Raw $tmp) -replace "^\uFEFF",""
+$tag = $tag.Trim()
+$zip = ".\\baseliner.zip"
+$url = "https://github.com/bonomani/baseliner/releases/download/$tag/package_$tag.zip"
+Invoke-WebRequest -Uri $url -OutFile $zip
+Expand-Archive -Path $zip -DestinationPath . -Force
+Remove-Item $zip -Force
+Remove-Item $tmp -Force
 ```
 
 Install (run from the same folder):
@@ -52,9 +61,19 @@ Install (run from the same folder):
 cd .\Baseliner; powershell -ExecutionPolicy Bypass -File .\setup.ps1
 ```
 
-Download + extract + install (one line):
+Download + extract + install:
 ```powershell
-$tag=(Get-Content -Raw -Path (Join-Path $env:TEMP "baseliner_latest.txt") -ErrorAction SilentlyContinue);if(-not $tag){Invoke-WebRequest -Uri "https://github.com/bonomani/baseliner/releases/latest/download/latest.txt" -OutFile (Join-Path $env:TEMP "baseliner_latest.txt") -UseBasicParsing; $tag=(Get-Content -Raw -Path (Join-Path $env:TEMP "baseliner_latest.txt")).Trim()};$zip=".\\baseliner.zip";$url="https://github.com/bonomani/baseliner/releases/download/$tag/package_$tag.zip";Invoke-WebRequest -Uri $url -OutFile $zip;Expand-Archive -Path $zip -DestinationPath . -Force;cd .\Baseliner; powershell -ExecutionPolicy Bypass -File .\setup.ps1
+$tmp = ".\\latest.txt"
+Invoke-WebRequest -Uri "https://github.com/bonomani/baseliner/releases/latest/download/latest.txt" -OutFile $tmp -UseBasicParsing
+$tag = (Get-Content -Raw $tmp) -replace "^\uFEFF",""
+$tag = $tag.Trim()
+$zip = ".\\baseliner.zip"
+$url = "https://github.com/bonomani/baseliner/releases/download/$tag/package_$tag.zip"
+Invoke-WebRequest -Uri $url -OutFile $zip
+Expand-Archive -Path $zip -DestinationPath . -Force
+Remove-Item $zip -Force
+Remove-Item $tmp -Force
+cd .\Baseliner; powershell -ExecutionPolicy Bypass -File .\setup.ps1
 ```
 
 ## Notes
