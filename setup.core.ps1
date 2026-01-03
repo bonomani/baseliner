@@ -221,10 +221,11 @@ function Show-ConfigDiff {
     $diff = Compare-Object -ReferenceObject $oldLines -DifferenceObject $newLines
     if (-not $diff -or $diff.Count -eq 0) {
         Write-Output "No config changes detected."
-        return
+        return $false
     }
     Write-Output "Config diff (<= current, => new):"
     $diff | ForEach-Object { Write-Output ("{0} {1}" -f $_.SideIndicator, $_.InputObject) }
+    return $true
 }
 
 function Format-JsonString {
@@ -364,7 +365,10 @@ function Copy-RootFilesFromUpdateIfChanged {
 function Get-LatestTag {
     if (-not $LatestTagUrl) { return $null }
     try {
-        $content = (Invoke-WebRequest -Uri $LatestTagUrl -UseBasicParsing).Content
+        $tmp = Join-Path $Root ("latest_" + (Get-Date -Format "yyyyMMdd_HHmmss") + ".tmp")
+        Invoke-WebRequest -Uri $LatestTagUrl -OutFile $tmp -UseBasicParsing
+        $content = Get-Content -Path $tmp -Raw
+        if (Test-Path $tmp) { Remove-Item -Path $tmp -Force -ErrorAction SilentlyContinue }
         if ($null -eq $content) { return $null }
         $tag = ($content -replace '^\uFEFF', '').Trim()
         if (-not $tag) { return $null }
@@ -433,6 +437,8 @@ if ($latestTag) {
         $zipName = "package_$releaseTag.zip"
         $zipUrl = "$RepoWebBase/releases/download/$releaseTag/$zipName"
         $shaUrl = "$zipUrl.sha256"
+        Write-Output "Update ZIP URL: $zipUrl"
+        Write-Output "Update SHA URL: $shaUrl"
         Invoke-UpdateZipDownload -Url $zipUrl
         $shaPath = Invoke-UpdateShaDownload -Url $shaUrl
         $expectedHash = Read-HashFromFile -Path $shaPath
@@ -827,7 +833,7 @@ $TestPayloadItems = $testPayloadInfo.Items
 $HasPayload = ($AppPayloadItems -and $AppPayloadItems.Count -gt 0) -or
               ($TestPayloadItems -and $TestPayloadItems.Count -gt 0)
 if (-not $HasPayload) {
-    Write-Output "No application or test payload found"
+    Write-Output "No application or test payload found (expected after cleanup/install)."
 }
 
 # --- Safe deploy function (content only) ---
@@ -1101,12 +1107,18 @@ if (Test-Path $SelectedPath) {
         throw
     }
     Write-PrettyJsonFile -Object $previewConfig -Path $ConfigPreview -Depth 20
+    $hasConfigChanges = $false
     try {
-        Show-ConfigDiff -OldPath $ConfigOut -NewPath $ConfigPreview
+        $hasConfigChanges = Show-ConfigDiff -OldPath $ConfigOut -NewPath $ConfigPreview
     } finally {
         if (Test-Path $ConfigPreview) {
             Remove-Item -Path $ConfigPreview -Force -ErrorAction SilentlyContinue
         }
+    }
+
+    if (-not $hasConfigChanges) {
+        Write-Output "Config unchanged; skipping profile apply."
+        goto UpdatePayload
     }
 
     $confirm = Read-YesNoDecision -Prompt "Confirm update?"
@@ -1135,6 +1147,7 @@ if (Test-Path $SelectedPath) {
     throw
 }
 
+UpdatePayload:
     if ($HasPayload) {
         try {
             if ($AppPayloadItems -and $AppPayloadItems.Count -gt 0) {
