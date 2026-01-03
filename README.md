@@ -44,7 +44,7 @@ Replace the URL with your current release asset.
 
 Download + extract (run from any folder):
 ```powershell
-$zip=".\\baseliner.zip";Invoke-WebRequest -Uri "https://github.com/bonomani/baseliner/releases/download/v1.0.0/package_v1.0.0.zip" -OutFile $zip;Expand-Archive -Path $zip -DestinationPath . -Force
+$tag=(Invoke-WebRequest -Uri "https://github.com/bonomani/baseliner/releases/latest/download/latest.txt" -UseBasicParsing).Content.Trim();$zip=".\\baseliner.zip";$url="https://github.com/bonomani/baseliner/releases/download/$tag/package_$tag.zip";Invoke-WebRequest -Uri $url -OutFile $zip;Expand-Archive -Path $zip -DestinationPath . -Force
 ```
 
 Install (run from the same folder):
@@ -54,7 +54,7 @@ cd .\Baseliner; powershell -ExecutionPolicy Bypass -File .\setup.ps1
 
 Download + extract + install (one line):
 ```powershell
-$zip=".\\baseliner.zip";Invoke-WebRequest -Uri "https://github.com/bonomani/baseliner/releases/download/v1.0.0/package_v1.0.0.zip" -OutFile $zip;Expand-Archive -Path $zip -DestinationPath . -Force;cd .\Baseliner; powershell -ExecutionPolicy Bypass -File .\setup.ps1
+$tag=(Invoke-WebRequest -Uri "https://github.com/bonomani/baseliner/releases/latest/download/latest.txt" -UseBasicParsing).Content.Trim();$zip=".\\baseliner.zip";$url="https://github.com/bonomani/baseliner/releases/download/$tag/package_$tag.zip";Invoke-WebRequest -Uri $url -OutFile $zip;Expand-Archive -Path $zip -DestinationPath . -Force;cd .\Baseliner; powershell -ExecutionPolicy Bypass -File .\setup.ps1
 ```
 
 ## Notes
