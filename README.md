@@ -54,7 +54,7 @@ cd .\Baseliner; powershell -ExecutionPolicy Bypass -File .\setup.ps1
 
 Download + extract + install (one line):
 ```powershell
-$zip=".\\baseliner.zip";Invoke-WebRequest -Uri "https://github.com/bonomani/baseliner/releases/download/v1.0.0/package_v1.0.0.zip" -OutFile $zip;Expand-Archive -Path $zip -DestinationPath . -Force;powershell -ExecutionPolicy Bypass -File .\Baseliner\setup.ps1
+$zip=".\\baseliner.zip";Invoke-WebRequest -Uri "https://github.com/bonomani/baseliner/releases/download/v1.0.0/package_v1.0.0.zip" -OutFile $zip;Expand-Archive -Path $zip -DestinationPath . -Force;cd .\Baseliner; powershell -ExecutionPolicy Bypass -File .\setup.ps1
 ```
 
 ## Notes
@@ -77,6 +77,7 @@ Upload the latest tag pointer:
 ```powershell
 gh release upload v1.0.0 build\latest.txt --clobber
 ```
+This enables `latest.txt` downloads at `.../releases/latest/download/latest.txt` for auto-update.
 
 Push changes to GitHub:
 ```powershell
