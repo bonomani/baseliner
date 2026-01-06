@@ -24,6 +24,7 @@ param (
 $lib = Join-Path $PSScriptRoot 'lib'
 
 Import-Module "$lib\GeneralUtil.psm1" -ErrorAction Stop -Force
+Import-Module "$lib\LoadScriptConfig.psm1" -ErrorAction Stop -Force
 
 # ------------------------------------------------------------
 # Bootstrap
@@ -84,7 +85,7 @@ try {
         -Context        $Context
 } catch {
     $Logger.WrapLog(
-        "Script $ScriptName failed: configuration loading error",
+        ("Script {0} failed: configuration loading error | Detail={1}" -f $ScriptName, $_.Exception.Message),
         "ERROR",
         $Context
     )
