@@ -108,6 +108,7 @@ $chocoApplied   = 0
 $chocoChanged   = 0
 
 if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
+    $Logger.WrapLog("Package manager 'Chocolatey' not found in PATH; installing.", "NOTICE", $Context)
     try {
         if (-not $WhatIf) {
             Set-ExecutionPolicy Bypass -Scope Process -Force
@@ -115,6 +116,8 @@ if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
                 [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
             iex ((New-Object System.Net.WebClient).DownloadString($InstallUrl))
             $env:Path = "$env:ChocolateyInstall\bin;$env:Path"
+            $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" +
+                [System.Environment]::GetEnvironmentVariable("Path","User")
         }
         $chocoInstalled = $true
         $chocoApplied   = 1
@@ -159,7 +162,8 @@ foreach ($Pkg in $Packages) {
 
     $Logger.WrapLog("Install package '$Pkg'.", "INFO", $Context)
 
-    $IsInstalled = & choco list --local-only --exact $Pkg 2>$null
+    $chocoLine   = & choco list --local-only --exact $Pkg --limit-output 2>$null
+    $IsInstalled = $chocoLine -match ("^" + [regex]::Escape($Pkg) + "\\|")
 
     if (-not $IsInstalled) {
         try {
