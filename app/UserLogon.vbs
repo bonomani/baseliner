@@ -12,7 +12,11 @@ ps1Path = thisFolder & "\" & "UserLogon.ps1"
 Set WshShell = CreateObject("WScript.Shell")
 WshShell.CurrentDirectory = thisFolder
 
-WshShell.Run "powershell.exe -NoProfile -ExecutionPolicy Bypass -File """ & ps1Path & """", 1, True
+
+WshShell.Run _
+  "cmd /c powershell.exe -NoProfile -ExecutionPolicy Bypass -File """ & ps1Path & """ -Verbose & timeout /t 2 >nul", _
+  1, True
+
 
 Set WshShell = Nothing
 Set fso = Nothing

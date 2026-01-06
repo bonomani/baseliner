@@ -33,6 +33,7 @@ $repoRoot = Resolve-RepoRoot
 $buildRoot = Join-Path $repoRoot "build"
 $payloadRoot = if ($UsePayloadFolder) { Join-Path $buildRoot "Baseliner" } else { $buildRoot }
 $updateRoot = Join-Path $payloadRoot "update"
+$updateRootFiles = Join-Path $updateRoot "root"
 
 if ($TimestampVersion -and -not $Version) {
     $Version = Get-Date -Format "yyyyMMdd_HHmmss"
@@ -54,6 +55,7 @@ if ($Clean) {
     }
 }
 New-DirectoryIfMissing -Path $updateRoot
+New-DirectoryIfMissing -Path $updateRootFiles
 
 $copyTargets = @(
     @{ Source = "setup.ps1"; Destination = "setup.ps1"; Root = $payloadRoot },
@@ -63,11 +65,7 @@ $copyTargets = @(
     @{ Source = ".markdownlint.json"; Destination = ".markdownlint.json"; Root = $payloadRoot },
     @{ Source = "app"; Destination = "app"; Root = $updateRoot },
     @{ Source = "test"; Destination = "test"; Root = $updateRoot },
-    @{ Source = "profiles_default"; Destination = "profiles_default"; Root = $updateRoot },
-    @{ Source = "setup.core.ps1"; Destination = "setup.core.ps1"; Root = $updateRoot },
-    @{ Source = "README.md"; Destination = "README.md"; Root = $updateRoot },
-    @{ Source = ".gitignore"; Destination = ".gitignore"; Root = $updateRoot },
-    @{ Source = ".markdownlint.json"; Destination = ".markdownlint.json"; Root = $updateRoot }
+    @{ Source = "profiles_default"; Destination = "profiles_default"; Root = $updateRoot }
 )
 
 foreach ($item in $copyTargets) {
@@ -85,6 +83,18 @@ foreach ($item in $copyTargets) {
 
     Copy-Item -Path $src -Destination $dst -Recurse -Force
     Write-Output "Copied: $src -> $dst"
+}
+
+$rootFiles = Get-ChildItem -Path $repoRoot -File -Force | Where-Object {
+    $_.Name -notin @("build", "update")
+}
+foreach ($file in $rootFiles) {
+    $dst = Join-Path $updateRootFiles $file.Name
+    if (Test-Path $dst) {
+        Remove-Item -Path $dst -Force
+    }
+    Copy-Item -Path $file.FullName -Destination $dst -Force
+    Write-Output "Copied: $($file.FullName) -> $dst"
 }
 
 if ($Version) {
