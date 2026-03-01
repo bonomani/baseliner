@@ -115,7 +115,7 @@ if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
             Set-ExecutionPolicy Bypass -Scope Process -Force
             [System.Net.ServicePointManager]::SecurityProtocol =
                 [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-            iex ((New-Object System.Net.WebClient).DownloadString($InstallUrl))
+            Invoke-Expression ((New-Object System.Net.WebClient).DownloadString($InstallUrl))
             $env:Path = "$env:ChocolateyInstall\bin;$env:Path"
             $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" +
                 [System.Environment]::GetEnvironmentVariable("Path","User")
