@@ -283,6 +283,31 @@ function Map-Drives {
 $workingServer = @{}
 $workingDrive = @{}
 
+# CHANGE 1: Add a bounded wait loop for server reachability before mapping logic.
+$maxWaitSeconds = 120
+$intervalSeconds = 5
+$elapsedSeconds = 0
+$networkReady = $false
+
+while ($elapsedSeconds -lt $maxWaitSeconds -and -not $networkReady) {
+
+    foreach ($s in $serversToTest) {
+        if (Test-Connection -ComputerName $s -Count 1 -Quiet -ErrorAction SilentlyContinue) {
+            $networkReady = $true
+            break
+        }
+    }
+
+    if (-not $networkReady) {
+        Start-Sleep -Seconds $intervalSeconds
+        $elapsedSeconds += $intervalSeconds
+    }
+}
+
+if (-not $networkReady) {
+    $Logger.WrapLog("No server reachable after ${maxWaitSeconds}s", "WARN", $Context)
+}
+
 while ($serversToTest.Count -gt 0) {
     $server = $serversToTest[0]
     $Logger.WrapLog("Testing server: $server", "DEBUG", $context)
