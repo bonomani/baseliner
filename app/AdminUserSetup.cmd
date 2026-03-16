@@ -10,7 +10,7 @@ echo This bootstrap is running from: %CurrentDir%
 :: ——————————————————————————————
 :: Define list of PowerShell scripts relative to CurrentDir
 :: ——————————————————————————————
-set "Script1=%CurrentDir%UserSetup.ps1"
+set "Script1=%CurrentDir%AdminUserSetup.ps1"
 set "ScriptCount=1"
 
 :: ——————————————————————————————

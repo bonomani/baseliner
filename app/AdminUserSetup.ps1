@@ -17,8 +17,60 @@ param (
     [switch]$Confirm,
     [switch]$Force,
     [switch]$Verbose,
-    [switch]$Debug
+    [switch]$Debug,
+    [switch]$Elevated
 )
+
+$CurrentIdentity = [Security.Principal.WindowsIdentity]::GetCurrent()
+$Principal = New-Object Security.Principal.WindowsPrincipal($CurrentIdentity)
+$IsAdmin = $Principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
+if (-not $IsAdmin) {
+    $ArgumentList = New-Object System.Collections.Generic.List[string]
+    $ArgumentList.Add('-NoProfile')
+    $ArgumentList.Add('-ExecutionPolicy')
+    $ArgumentList.Add('Bypass')
+    $ArgumentList.Add('-File')
+    $ArgumentList.Add(('"{0}"' -f $PSCommandPath))
+
+    if ($ConfigPath) {
+        $ArgumentList.Add('-ConfigPath')
+        $ArgumentList.Add(('"{0}"' -f $ConfigPath))
+    }
+
+    if ($LogLevel) {
+        $ArgumentList.Add('-LogLevel')
+        $ArgumentList.Add($LogLevel)
+    }
+
+    $ArgumentList.Add('-RetryCount')
+    $ArgumentList.Add($RetryCount.ToString())
+
+    $ArgumentList.Add('-DelaySeconds')
+    $ArgumentList.Add($DelaySeconds.ToString())
+
+    if ($ErrorAction) {
+        $ArgumentList.Add('-ErrorAction')
+        $ArgumentList.Add($ErrorAction)
+    }
+
+    if ($WhatIf)  { $ArgumentList.Add('-WhatIf') }
+    if ($Confirm) { $ArgumentList.Add('-Confirm') }
+    if ($Force)   { $ArgumentList.Add('-Force') }
+    if ($Verbose) { $ArgumentList.Add('-Verbose') }
+    if ($Debug)   { $ArgumentList.Add('-Debug') }
+
+    $ArgumentList.Add('-Elevated')
+
+    try {
+        Start-Process -FilePath 'powershell.exe' -ArgumentList $ArgumentList -Verb RunAs -ErrorAction Stop | Out-Null
+        exit 0
+    }
+    catch {
+        Write-Error "Unable to elevate this script."
+        exit 1
+    }
+}
 
 # ------------------------------------------------------------
 # Core imports

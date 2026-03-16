@@ -475,6 +475,159 @@ function Initialize-Script {
     }
 }
 
+function Invoke-Governed {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Intent,
+
+        [Parameter(Mandatory)]
+        [ScriptBlock]$Action,
+
+        # ---- OPTIONAL CONTEXT ----
+        [hashtable]$Target,
+        [hashtable]$State,
+        [hashtable]$Reasoning,
+        [hashtable]$Policy,
+        [hashtable]$Quality
+    )
+
+    # --------------------------------------------------
+    # IDs
+    # --------------------------------------------------
+    $CorrelationId = [guid]::NewGuid().ToString()
+    $IntentEventId = [guid]::NewGuid().ToString()
+
+    # --------------------------------------------------
+    # INTENT RECORD (REQUIRED)
+    # --------------------------------------------------
+    Write-Event @{
+        event_id       = $IntentEventId
+        type           = "intent"
+        correlation_id = $CorrelationId
+        timestamp_utc  = (Get-Date).ToUniversalTime()
+        intent         = $Intent
+    }
+
+    $ParentEventId = $IntentEventId
+
+    # --------------------------------------------------
+    # DECISION / REASONING (OPTIONAL)
+    # --------------------------------------------------
+    if ($Reasoning) {
+        $DecisionEventId = [guid]::NewGuid().ToString()
+
+        Write-Event @{
+            event_id       = $DecisionEventId
+            type           = "decision"
+            parent_event_id= $ParentEventId
+            correlation_id = $CorrelationId
+            timestamp_utc  = (Get-Date).ToUniversalTime()
+            reasoning      = $Reasoning
+        }
+
+        $ParentEventId = $DecisionEventId
+    }
+
+    # --------------------------------------------------
+    # POLICY / AUTHORITY (OPTIONAL)
+    # --------------------------------------------------
+    if ($Policy) {
+        $ApprovalEventId = [guid]::NewGuid().ToString()
+
+        Write-Event @{
+            event_id       = $ApprovalEventId
+            type           = "approval"
+            parent_event_id= $ParentEventId
+            correlation_id = $CorrelationId
+            timestamp_utc  = (Get-Date).ToUniversalTime()
+            policy         = $Policy
+        }
+
+        $ParentEventId = $ApprovalEventId
+    }
+
+    # --------------------------------------------------
+    # EXECUTION (REQUIRED)
+    # --------------------------------------------------
+    $ExecutionEventId = [guid]::NewGuid().ToString()
+    $StartTime = Get-Date
+
+    try {
+        $Result = & $Action
+        $Status = "success"
+    }
+    catch {
+        $Status = "failure"
+        throw
+    }
+    finally {
+        $EndTime = Get-Date
+
+        Write-Event @{
+            event_id       = $ExecutionEventId
+            type           = "execution"
+            parent_event_id= $ParentEventId
+            correlation_id = $CorrelationId
+            timestamp_utc  = $EndTime.ToUniversalTime()
+
+            result         = $Status
+            target         = $Target
+            state          = $State
+        }
+    }
+
+    # --------------------------------------------------
+    # QUALITY (OPTIONAL)
+    # --------------------------------------------------
+    if ($Quality) {
+        Write-Event @{
+            event_id       = [guid]::NewGuid().ToString()
+            type           = "quality"
+            parent_event_id= $ExecutionEventId
+            correlation_id = $CorrelationId
+            timestamp_utc  = (Get-Date).ToUniversalTime()
+
+            metric         = @{
+                id        = $Quality.metric_id
+                value     = ($EndTime - $StartTime).TotalMilliseconds
+                baseline  = $Quality.baseline
+                status    = "observed"
+            }
+        }
+    }
+
+    return $Result
+}
+function Write-Event {
+    param(
+        [Parameter(Mandatory)]
+        [hashtable]$EventData
+    )
+
+    if (-not $EventData.ContainsKey('timestamp_utc')) {
+        $EventData.timestamp_utc = (Get-Date).ToUniversalTime()
+    }
+
+    if (-not $EventData.ContainsKey('event_id')) {
+        $EventData.event_id = [guid]::NewGuid().ToString()
+    }
+
+    $line = ($EventData | ConvertTo-Json -Depth 10 -Compress)
+
+    # ✅ FIX: chemin stable ancré sur la racine du projet
+    #$root   = Get-TopScriptRoot
+    #$logDir = Join-Path $root 'data\records'
+    $logDir = Join-Path $PSScriptRoot '..\..\data\records'
+    $logFile = Join-Path $logDir ("records-" + (Get-Date -Format 'yyyyMMdd') + ".ndjson")
+
+    if (-not (Test-Path $logDir)) {
+        New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+    }
+
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::AppendAllText($logFile, $line + "`n", $utf8NoBom)
+}
+
 Export-ModuleMember -Function `
     Get-CurrentTimestamp,
     Convert-SizeToBytes,
@@ -494,4 +647,6 @@ Export-ModuleMember -Function `
     Invoke-Script,
     Get-TopScriptRoot,
     Resolve-Item,
-    Initialize-Script
+    Initialize-Script,
+    Invoke-Governed,
+    Write-Event

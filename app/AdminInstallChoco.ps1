@@ -157,29 +157,62 @@ $installed = 0
 $unchanged = 0
 $failed    = 0
 
-foreach ($Pkg in $Packages) {
+foreach ($PkgEntry in $Packages) {
 
     $processed++
 
-    $Logger.WrapLog("Install package '$Pkg'.", "INFO", $Context)
+    if ($PkgEntry -is [PSCustomObject]) {
+        $PkgName = [string]$PkgEntry.name
+        $PkgPin  = if ($PkgEntry.PSObject.Properties.Name -contains 'pin') { [bool]$PkgEntry.pin } else { $null }
+    } else {
+        $PkgName = [string]$PkgEntry
+        $PkgPin  = $null
+    }
 
-    $chocoLine   = & choco list --local-only --exact $Pkg --limit-output 2>$null
-    $IsInstalled = $chocoLine -match ("^" + [regex]::Escape($Pkg) + "\\|")
+    $Logger.WrapLog("Install package '$PkgName'.", "INFO", $Context)
+
+    $chocoLine   = & choco list --local-only --exact $PkgName --limit-output 2>$null
+    $IsInstalled = $chocoLine -match ("^" + [regex]::Escape($PkgName) + "\|")
+    $InstalledVersion = if ($IsInstalled) { ($chocoLine -split "\|")[1] } else { $null }
 
     if (-not $IsInstalled) {
         try {
             if (-not $WhatIf) {
-                & choco install -y $Pkg | Out-Null
+                & choco install -y $PkgName | Out-Null
             }
             $installed++
-            $Logger.WrapLog("Package '$Pkg' installed | Reason=missing", "NOTICE", $Context)
+            $Logger.WrapLog("Package '$PkgName' installed | Reason=missing", "NOTICE", $Context)
         } catch {
             $failed++
-            $Logger.WrapLog("Package '$Pkg' failed to install", "WARN", $Context)
+            $Logger.WrapLog("Package '$PkgName' failed to install", "WARN", $Context)
         }
     } else {
         $unchanged++
-        $Logger.WrapLog("Package '$Pkg' already installed | Reason=match", "NOTICE", $Context)
+        $Logger.WrapLog("Package '$PkgName' ($InstalledVersion) already installed | Reason=match", "NOTICE", $Context)
+    }
+
+    if ($null -ne $PkgPin) {
+        $pinnedLine = & choco pin list --limit-output 2>$null
+        $IsPinned   = $pinnedLine -match ("^" + [regex]::Escape($PkgName) + "\|")
+        if ($PkgPin -and -not $IsPinned) {
+            try {
+                if (-not $WhatIf) { & choco pin add -n $PkgName | Out-Null }
+                $Logger.WrapLog("Package '$PkgName' pinned | Reason=missing", "NOTICE", $Context)
+            } catch {
+                $Logger.WrapLog("Package '$PkgName' failed to pin", "WARN", $Context)
+            }
+        } elseif ($PkgPin) {
+            $Logger.WrapLog("Package '$PkgName' already pinned | Reason=match", "NOTICE", $Context)
+        } elseif (-not $PkgPin -and $IsPinned) {
+            try {
+                if (-not $WhatIf) { & choco pin remove -n $PkgName | Out-Null }
+                $Logger.WrapLog("Package '$PkgName' unpinned | Reason=pinned", "NOTICE", $Context)
+            } catch {
+                $Logger.WrapLog("Package '$PkgName' failed to unpin", "WARN", $Context)
+            }
+        } else {
+            $Logger.WrapLog("Package '$PkgName' already unpinned | Reason=match", "NOTICE", $Context)
+        }
     }
 }
 

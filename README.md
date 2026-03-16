@@ -70,6 +70,7 @@ Build the update ZIP:
 
 Upload the ZIP, its `.sha256`, and `latest.txt` to the GitHub release:
 ```powershell
+gh release create v1.0.0 --title "v1.0.0" --notes "Release v1.0.0"
 gh release upload v1.0.0 build\package_v1.0.0.zip build\package_v1.0.0.zip.sha256 build\latest.txt --clobber
 ```
 This enables `latest.txt` downloads at `.../releases/latest/download/latest.txt` for auto-update.

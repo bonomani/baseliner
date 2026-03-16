@@ -1,6 +1,8 @@
 param (
     [string]$Replace,
-    [switch]$ForceUpdate
+    [switch]$ForceUpdate,
+    [switch]$Release,
+    [string]$Version
 )
 
 $Root = Get-Location | Select-Object -ExpandProperty Path
@@ -24,6 +26,41 @@ function Join-PathParts {
 $New  = Join-PathParts -Base $Root -Parts @("update", "root", "setup.core.ps1")
 $SetupFile = Join-PathParts -Base $Root -Parts @("data", "db", "setup.json")
 $UpdateZipPath = Join-PathParts -Base $Root -Parts @("update", "package.zip")
+
+# --- Release ---
+if ($Release) {
+    if (-not $Version) {
+        Write-Error "-Version is required with -Release"
+        exit 1
+    }
+
+    $tagVersion = if ($Version -match '^v') { $Version } else { "v$Version" }
+    $buildRoot  = Join-Path $Root "build"
+    $zipPath    = Join-Path $buildRoot "package_$tagVersion.zip"
+    $sha256Path = "$zipPath.sha256"
+    $latestPath = Join-Path $buildRoot "latest.txt"
+
+    Write-Host "Building release $tagVersion..."
+    & "$Root\app\tools\Build-Update.ps1" -Clean -Version $Version -Zip -UsePayloadFolder
+    if ($LASTEXITCODE -ne 0) { Write-Error "Build failed"; exit 1 }
+
+    Write-Host "Committing..."
+    git -C $Root add .
+    git -C $Root commit -m "Release $tagVersion"
+    git -C $Root push
+    if ($LASTEXITCODE -ne 0) { Write-Error "Git push failed"; exit 1 }
+
+    Write-Host "Creating GitHub release $tagVersion..."
+    gh release create $tagVersion --title $tagVersion --notes ""
+    if ($LASTEXITCODE -ne 0) { Write-Error "gh release create failed"; exit 1 }
+
+    Write-Host "Uploading assets..."
+    gh release upload $tagVersion $zipPath $sha256Path $latestPath --clobber
+    if ($LASTEXITCODE -ne 0) { Write-Error "gh release upload failed"; exit 1 }
+
+    Write-Host "Release $tagVersion completed."
+    exit 0
+}
 
 # --- Self update ---
 if ($Replace) {

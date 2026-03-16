@@ -84,7 +84,7 @@ function New-Logger {
             [hashtable]$Context
         )
 
-        if ($Context.WhatIf) { $Message = "[SIMULATION] $Message" }
+        if ($Context.WhatIf) { $Message = "[WHATIF] $Message" }
         if ($Context.Phase)  { $Message = "[$($Context.Phase)] $Message" }
 
         $this.Log($Message, $Level)
