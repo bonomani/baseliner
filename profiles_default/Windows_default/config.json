@@ -92,19 +92,26 @@
     }
   },
   "AdminInstallChoco": {
-    "installUrl": "https://community.chocolatey.org/install.ps1",
-    "proxy": "",
-    "packages": [
-      "ultravnc",
-      "chocolateygui",
-      "7zip",
-      "adobereader",
-      "ccleaner",
-      "choco-cleaner",
-      "choco-upgrade-all-at",
-      "firefox",
-      "ripgrep",
-      "notepadplusplus"
+    "packageBatchOperations": [
+      {
+        "operation": "install-package",
+        "context": {
+          "installUrl": "https://community.chocolatey.org/install.ps1",
+          "proxy": ""
+        },
+        "items": [
+          { "name": "ultravnc" },
+          { "name": "chocolateygui" },
+          { "name": "7zip" },
+          { "name": "adobereader" },
+          { "name": "ccleaner" },
+          { "name": "choco-cleaner" },
+          { "name": "choco-upgrade-all-at" },
+          { "name": "firefox" },
+          { "name": "ripgrep" },
+          { "name": "notepadplusplus" }
+        ]
+      }
     ]
   },
   "AdminInstallNppCompare": {
@@ -118,11 +125,37 @@
           "folder": "C:\\Users\\Public\\Desktop"
         },
         "items": [
+          { "name": "Administer FileZilla Server.lnk" },
+          { "name": "BCUninstaller.lnk" },
+          { "name": "BleachBit.lnk" },
           { "name": "CCleaner.lnk" },
-          { "name": "TeamViewer.lnk" },
+          { "name": "FortiClient VPN.lnk" },
+          { "name": "HP Print Scan Doctor.lnk" },
+          { "name": "HP Scan Assistant.lnk" },
+          { "name": "HP Scan.lnk" },
+          { "name": "Infoniqa ONE Start.lnk" },
+          { "name": "Markdown Monster.lnk" },
+          { "name": "Microsoft Edge.lnk" },
+          { "name": "Modbus Poll.lnk" },
+          { "name": "Nextcloud.lnk" },
+          { "name": "PDFsam Basic.lnk" },
+          { "name": "PatchCleaner.lnk" },
+          { "name": "RVTools.lnk" },
           { "name": "Adobe Acrobat.lnk" },
           { "name": "Softerra LDAP Browser 4.5 (64-bit).lnk" },
-          { "name": "Microsoft Edge.lnk" }
+          { "name": "Sourcetree Enterprise.lnk" },
+          { "name": "Start FileZilla Server.lnk" },
+          { "name": "Stop FileZilla Server.lnk" },
+          { "name": "TeamViewer.lnk" },
+          { "name": "Thunderbird.lnk" },
+          { "name": "TLauncher.lnk" },
+          { "name": "WinSCP.lnk" },
+          { "name": "Wise Registry Cleaner.lnk" },
+          { "name": "gVim 9.1.lnk" },
+          { "name": "gVim 9.1 Easy.lnk" },
+          { "name": "gVim 9.1 Read-Only.lnk" },
+          { "name": "Ubiquitous Network.url" },
+          { "name": "Technical Building Management Portal.url" }
         ]
       },
       {
@@ -132,12 +165,7 @@
           "iconFolder": "..\\data\\resources",
           "iconName": "favicon.ico"
         },
-        "items": [
-          {
-            "name": "Ubiquitous Network",
-            "url": "http://www.ubi-network.ch"
-          }
-        ]
+        "items": []
       }
     ]
   },
@@ -206,12 +234,26 @@
   "AdminScheduleAdminTasks": {
     "Tasks": [
       {
-        "Name": "UbiRegularAdminTasks",
-        "Description": "RegularAdminTasks",
+        "Name": "BaselinerRegularAdminTasks",
+        "Description": "Baseliner admin tasks at logon",
         "Script": "{{path:{{scriptroot}}}}\\AdminRegularAdminTasks.ps1",
         "RunLevel": "High",
         "Trigger": "AtLogOn",
         "Delay": "PT30S",
+        "Hidden": true,
+        "Enabled": true,
+        "RunOnlyIfIdle": false,
+        "DisallowStartIfOnBatteries": false,
+        "StopIfGoingOnBatteries": false
+      },
+      {
+        "Name": "BaselinerUserLogon",
+        "Description": "Baseliner user logon tasks",
+        "Script": "{{path:{{scriptroot}}}}\\UserLogon.ps1",
+        "Principal": "Users",
+        "RunLevel": "Limited",
+        "Trigger": "AtLogOn",
+        "Delay": "PT15S",
         "Hidden": true,
         "Enabled": true,
         "RunOnlyIfIdle": false,
@@ -726,9 +768,23 @@
         "operation": "remove-file",
         "context": { "folder": "%USERPROFILE%\\Desktop" },
         "items": [
-          { "name": "Technical Building Management Portal.url" },
+          { "name": "Adobe Acrobat.lnk" },
+          { "name": "AnywhereUSB Manager.lnk" },
+          { "name": "balenaEtcher.lnk" },
+          { "name": "CurseForge.lnk" },
+          { "name": "Docker Desktop.lnk" },
+          { "name": "GIMP 3.0.6.lnk" },
+          { "name": "GeTax PM 2024.lnk" },
+          { "name": "Google Chrome.lnk" },
+          { "name": "MicroSIP.lnk" },
           { "name": "Microsoft Edge.lnk" },
-          { "name": "Adobe Acrobat.lnk" }
+          { "name": "Nmap.lnk" },
+          { "name": "Opera GX.lnk" },
+          { "name": "Signal.lnk" },
+          { "name": "Telegram.lnk" },
+          { "name": "Wondershare MobileTrans.lnk" },
+          { "name": "Zenmap GUI.lnk" },
+          { "name": "Technical Building Management Portal.url" }
         ]
       }
     ]
@@ -1038,19 +1094,6 @@
   },
   "UserWindows11": {
     "registryBatchOperations": [
-      {
-        "operation": "set-keyvalue",
-        "context": {
-          "key": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run"
-        },
-        "items": [
-          {
-            "name": "Ubi",
-            "value": "{{path:{{scriptroot}}}}\\UserLogon.vbs",
-            "type": "String"
-          }
-        ]
-      },
       {
         "operation": "set-keyvalue",
         "context": {

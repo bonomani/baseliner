@@ -211,9 +211,12 @@ foreach ($task in $config.Tasks) {
         continue
     }
 
-    $triggerType = if ($task.Trigger -eq "AtStartup") { 8 } else { 9 }
-    $runLevel = if ($task.RunLevel -match '^High$|^Highest$') { 1 } else { 0 }
-    $delay = Convert-IsoDelayToTaskDelay -Delay $task.Delay
+    $triggerType      = if ($task.Trigger -eq "AtStartup") { 8 } else { 9 }
+    $runLevel         = if ($task.RunLevel -match '^High$|^Highest$') { 1 } else { 0 }
+    $delay            = Convert-IsoDelayToTaskDelay -Delay $task.Delay
+    $isGroupPrincipal = $task.Principal -eq "Users"
+    $principalId      = if ($isGroupPrincipal) { "S-1-5-32-545" } else { $SYSTEM_SID }
+    $logonType        = if ($isGroupPrincipal) { 4 } else { 5 }
 
     $Logger.WrapLog(
         "Set scheduled task '$taskName'.",
@@ -237,8 +240,8 @@ foreach ($task in $config.Tasks) {
             $desiredDefinition.Settings.StartWhenAvailable = $true
 
             $principal = $desiredDefinition.Principal
-            $principal.UserId    = $SYSTEM_SID
-            $principal.LogonType = 5
+            $principal.UserId    = $principalId
+            $principal.LogonType = $logonType
             $principal.RunLevel  = $runLevel
 
             $trigger = $desiredDefinition.Triggers.Create($triggerType)
@@ -291,7 +294,7 @@ foreach ($task in $config.Tasks) {
                 6,
                 $null,
                 $null,
-                5
+                $logonType
             ) | Out-Null
         }
 

@@ -51,7 +51,7 @@ if ($Release) {
     if ($LASTEXITCODE -ne 0) { Write-Error "Git push failed"; exit 1 }
 
     Write-Host "Creating GitHub release $tagVersion..."
-    gh release create $tagVersion --title $tagVersion --notes ""
+    gh release create $tagVersion --title $tagVersion --generate-notes
     if ($LASTEXITCODE -ne 0) { Write-Error "gh release create failed"; exit 1 }
 
     Write-Host "Uploading assets..."
@@ -423,7 +423,7 @@ function Move-Atomic {
         if (Test-Path $StagingPath) {
             Remove-Item -Path $StagingPath -Recurse -Force -ErrorAction SilentlyContinue
         }
-        if (Test-Path $BackupPath -and -not (Test-Path $DestinationPath)) {
+        if ((Test-Path $BackupPath) -and -not (Test-Path $DestinationPath)) {
             Move-Item -Path $BackupPath -Destination $DestinationPath -Force -ErrorAction SilentlyContinue
         }
         throw
@@ -854,20 +854,107 @@ function Invoke-CustomProfileDownload {
     Expand-Archive -Path $zipPath -DestinationPath $CustomProfilesPath -Force
 }
 
-function Merge-ConfigFirstLevel {
+function ConvertTo-Hashtable {
+    param ($Value)
+    if ($Value -is [hashtable]) { return $Value }
+    $ht = @{}
+    if ($Value) {
+        foreach ($prop in $Value.PSObject.Properties) { $ht[$prop.Name] = $prop.Value }
+    }
+    return $ht
+}
+
+function Merge-ConfigDeep {
+    # Deep merge Source into Target (hashtable).
+    # - null value  => remove the key (JSON Merge Patch, RFC 7396)
+    # - keyed array => merge by 'name' or 'operation'; items with '$remove':true are deleted
+    # - object      => recurse
+    # - scalar      => replace
     param (
         [hashtable]$Target,
         $Source
     )
     if ($null -eq $Source) { return }
-    if ($Source -is [hashtable]) {
-        foreach ($key in $Source.Keys) {
-            $Target[$key] = $Source[$key]
+
+    $srcHT = ConvertTo-Hashtable $Source
+
+    foreach ($key in @($srcHT.Keys)) {
+        $srcVal = $srcHT[$key]
+
+        # null => remove key (tool falls back to its own built-in default)
+        if ($null -eq $srcVal) {
+            $Target.Remove($key)
+            continue
         }
-        return
-    }
-    foreach ($prop in $Source.PSObject.Properties) {
-        $Target[$prop.Name] = $prop.Value
+
+        $tgtVal = $Target[$key]
+
+        # Array handling
+        $srcIsArray = $srcVal -is [array] -or $srcVal -is [System.Collections.ArrayList]
+        if ($srcIsArray) {
+            $srcArr = @($srcVal)
+            $tgtArr = if ($tgtVal -is [array] -or $tgtVal -is [System.Collections.ArrayList]) { @($tgtVal) } else { $null }
+
+            if ($tgtArr -ne $null) {
+                # Detect identity key from first object element
+                $idKey = $null
+                foreach ($item in $srcArr) {
+                    if ($item -is [hashtable] -or $item -is [System.Management.Automation.PSCustomObject]) {
+                        $itemHT = ConvertTo-Hashtable $item
+                        if ($itemHT.ContainsKey('name'))      { $idKey = 'name';      break }
+                        if ($itemHT.ContainsKey('operation')) { $idKey = 'operation'; break }
+                    }
+                }
+
+                if ($idKey) {
+                    # Keyed merge
+                    $merged = [System.Collections.Generic.List[object]]::new()
+                    foreach ($item in $tgtArr) { $merged.Add((ConvertTo-Hashtable $item)) }
+
+                    foreach ($srcItem in $srcArr) {
+                        $srcItemHT = ConvertTo-Hashtable $srcItem
+                        $idVal = $srcItemHT[$idKey]
+
+                        $existingIdx = -1
+                        for ($i = 0; $i -lt $merged.Count; $i++) {
+                            if ($merged[$i][$idKey] -eq $idVal) { $existingIdx = $i; break }
+                        }
+
+                        # $remove:true => delete the matched item
+                        if ($srcItemHT['$remove'] -eq $true) {
+                            if ($existingIdx -ge 0) { $merged.RemoveAt($existingIdx) }
+                            continue
+                        }
+
+                        if ($existingIdx -ge 0) {
+                            Merge-ConfigDeep -Target $merged[$existingIdx] -Source $srcItemHT
+                        } else {
+                            $merged.Add($srcItemHT)
+                        }
+                    }
+                    $Target[$key] = $merged.ToArray()
+                    continue
+                }
+            }
+            # No identity key or no target array => replace
+            $Target[$key] = $srcArr
+            continue
+        }
+
+        # Object handling => recurse
+        $srcIsObj = $srcVal -is [hashtable] -or $srcVal -is [System.Management.Automation.PSCustomObject]
+        $tgtIsObj = $tgtVal -is [hashtable] -or $tgtVal -is [System.Management.Automation.PSCustomObject]
+        if ($srcIsObj -and $tgtIsObj) {
+            if (-not ($tgtVal -is [hashtable])) {
+                $tgtVal = ConvertTo-Hashtable $tgtVal
+                $Target[$key] = $tgtVal
+            }
+            Merge-ConfigDeep -Target $tgtVal -Source $srcVal
+            continue
+        }
+
+        # Scalar or type mismatch => replace
+        $Target[$key] = $srcVal
     }
 }
 
@@ -889,7 +976,7 @@ function Get-ConfigFromManifest {
                 throw "Config include not found"
             }
             $fragment = Get-JsonFile -Path $includePath
-            Merge-ConfigFirstLevel -Target $config -Source $fragment
+            Merge-ConfigDeep -Target $config -Source $fragment
         }
     }
     return $config
