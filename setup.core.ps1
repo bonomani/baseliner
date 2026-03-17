@@ -46,7 +46,10 @@ if ($Release) {
 
     Write-Host "Committing..."
     git -C $Root add .
-    git -C $Root commit -m "Release $tagVersion"
+    $commitOutput = git -C $Root commit -m "Release $tagVersion" 2>&1
+    if ($LASTEXITCODE -ne 0 -and $commitOutput -notmatch "nothing to commit") {
+        Write-Error "Git commit failed: $commitOutput"; exit 1
+    }
     git -C $Root push
     if ($LASTEXITCODE -ne 0) { Write-Error "Git push failed"; exit 1 }
 
