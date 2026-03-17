@@ -283,9 +283,6 @@
           "Name": "AdminWindows11"
         },
         {
-          "Name": "AdminSetupActiveSetup"
-        },
-        {
           "Name": "AdminPublicDesktop"
         },
         {
@@ -314,12 +311,6 @@
         }
       ]
     }
-  },
-  "AdminSetupActiveSetup": {
-    "MonitoredFiles": [
-      "config.json",
-      "RegistryManager.ps1"
-    ]
   },
   "AdminSetupFirefoxDefaultConfig": {
     "FirefoxProfileDir": "C:\\Program Files\\Mozilla Firefox\\defaults\\profile",
@@ -664,28 +655,6 @@
     ]
   },
   
-  "AdminUserSetup": {
-    "Script": {
-      "Folder": "{{path:{{scriptroot}}}}",
-      "Schedule": "always",
-      "Scripts": [
-        {
-          "Name": "UserWindows11"
-        },
-        {
-          "Name": "UserOffice2021"
-        },
-        {
-          "Name": "AdminSetupFirefoxDefaultProfile",
-          "Schedule": "once"
-        }
-      ]
-    }
-  },
-  "AdminUserSetupFromActiveSetup": {
-    "PauseDuration": 30,
-    "AdditionalScriptName": "AdminUserSetup.ps1"
-  },
   "AdminWindows11": {
     "registryBatchOperations": [
       {
@@ -889,6 +858,13 @@
         {
           "Name": "UserDesktop",
           "Schedule": "always"
+        },
+        {
+          "Name": "UserOffice2021"
+        },
+        {
+          "Name": "AdminSetupFirefoxDefaultProfile",
+          "Schedule": "once"
         }
       ]
     }
