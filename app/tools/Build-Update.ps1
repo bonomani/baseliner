@@ -121,3 +121,5 @@ if ($Zip) {
     Set-Content -Path $hashPath -Value $zipHash
     Write-Output "Created SHA256: $hashPath"
 }
+
+exit 0
