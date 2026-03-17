@@ -183,10 +183,18 @@
           "Name": "AdminRemoveProvisionedApps"
         },
         {
+          "Name": "AdminDisableOptionalFeatures"
+        },
+        {
           "Name": "AdminPublicDesktop"
         }
       ]
     }
+  },
+  "AdminDisableOptionalFeatures": {
+    "features": [
+      "WorkFolders-Client"
+    ]
   },
   "AdminRemoveProvisionedApps": {
     "apps": [
@@ -214,6 +222,7 @@
 
       "Microsoft.Xbox.TCUI",
       "Microsoft.XboxGamingOverlay",
+      "Microsoft.XboxIdentityProvider",
       "Microsoft.XboxSpeechToTextOverlay",
 
       "Microsoft.YourPhone",
@@ -228,7 +237,10 @@
       "Microsoft.People",
       "Microsoft.MixedReality.Portal",
       "Microsoft.PowerAutomateDesktop",
-      "Microsoft.549981C3F5F10"
+      "Microsoft.549981C3F5F10",
+
+      "Microsoft.MicrosoftStickyNotes",
+      "Microsoft.WindowsNarratorQuickStart"
     ]
   },
   "AdminScheduleAdminTasks": {
@@ -699,6 +711,11 @@
             "name": "EnableFirstLogonAnimation",
             "value": 0,
             "type": "DWord"
+          },
+          {
+            "name": "NoConnectedUser",
+            "value": 1,
+            "type": "DWord"
           }
         ]
       },
@@ -758,6 +775,55 @@
             "type": "DWord"
           }
         ]
+      },
+      {
+        "operation": "set-keyvalue",
+        "context": {
+          "key": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\SettingSync"
+        },
+        "items": [
+          {
+            "name": "DisableSettingSync",
+            "value": 2,
+            "type": "DWord"
+          },
+          {
+            "name": "DisableSettingSyncUserOverride",
+            "value": 1,
+            "type": "DWord"
+          }
+        ]
+      },
+      {
+        "operation": "set-keyvalue",
+        "context": {
+          "key": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\OneDrive"
+        },
+        "items": [
+          {
+            "name": "DisableFileSyncNGSC",
+            "value": 1,
+            "type": "DWord"
+          }
+        ]
+      },
+      {
+        "operation": "set-keyvalue",
+        "context": {
+          "key": "HKU:\\.DEFAULT\\Software\\Microsoft\\Windows\\CurrentVersion\\Search"
+        },
+        "items": [
+          {
+            "name": "BingSearchEnabled",
+            "value": 0,
+            "type": "DWord"
+          },
+          {
+            "name": "CloudSearchEnabled",
+            "value": 0,
+            "type": "DWord"
+          }
+        ]
       }
     ]
   },
@@ -797,7 +863,10 @@
     "ProgramsToDisable": [
       "CCleaner Smart Cleaning",
       "MicrosoftEdgeAutoLaunch_*",
-      "OneDrive*"
+      "OneDrive*",
+      "KeePass 2 PreLoad",
+      "GUDelayStartup",
+      "Docker Desktop"
     ]
   },
   "UserLogon": {
@@ -1102,6 +1171,37 @@
         "items": [
           {
             "name": "HideFileExt",
+            "value": 0,
+            "type": "DWord"
+          }
+        ]
+      },
+      {
+        "operation": "set-keyvalue",
+        "context": {
+          "key": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\UserProfileEngagement"
+        },
+        "items": [
+          {
+            "name": "ScoobeSystemSettingEnabled",
+            "value": 0,
+            "type": "DWord"
+          }
+        ]
+      },
+      {
+        "operation": "set-keyvalue",
+        "context": {
+          "key": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Search"
+        },
+        "items": [
+          {
+            "name": "BingSearchEnabled",
+            "value": 0,
+            "type": "DWord"
+          },
+          {
+            "name": "CloudSearchEnabled",
             "value": 0,
             "type": "DWord"
           }

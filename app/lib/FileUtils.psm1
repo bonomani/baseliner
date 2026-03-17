@@ -7,10 +7,18 @@ Import-Module -Name "$PSScriptRoot\GeneralUtil.psm1" -ErrorAction Stop
 # Global file operation lock
 # ------------------------------------------------------------
 if (-not $Global:FileOperationLock) {
-    $Global:FileOperationLock = New-Object System.Threading.Mutex(
-        $false,
-        "Global\FileOperationMutex"
-    )
+    try {
+        $Global:FileOperationLock = New-Object System.Threading.Mutex(
+            $false,
+            "Global\FileOperationMutex"
+        )
+    }
+    catch {
+        $Global:FileOperationLock = New-Object System.Threading.Mutex(
+            $false,
+            "Local\FileOperationMutex"
+        )
+    }
 }
 
 # Create directory if it doesn't exist
