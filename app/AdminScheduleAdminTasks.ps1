@@ -276,8 +276,8 @@ foreach ($task in $config.Tasks) {
         $definition.Settings.StartWhenAvailable = $true
 
         $principal = $definition.Principal
-        $principal.UserId    = $SYSTEM_SID
-        $principal.LogonType = 5
+        $principal.UserId    = $principalId
+        $principal.LogonType = $logonType
         $principal.RunLevel  = $runLevel
 
         $trigger = $definition.Triggers.Create($triggerType)
