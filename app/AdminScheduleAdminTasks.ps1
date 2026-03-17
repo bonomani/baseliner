@@ -288,11 +288,14 @@ foreach ($task in $config.Tasks) {
         $action.Arguments = "-ExecutionPolicy Bypass -File `"$scriptPath`""
 
         if (-not $WhatIf) {
+            if ($existingTask) {
+                $rootFolder.DeleteTask($taskName, 0)
+            }
             $registerUserId = if ($isGroupPrincipal) { $principalId } else { $null }
             $rootFolder.RegisterTaskDefinition(
                 $taskName,
                 $definition,
-                6,
+                2,
                 $registerUserId,
                 $null,
                 $logonType
