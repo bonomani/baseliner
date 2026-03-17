@@ -240,7 +240,11 @@ foreach ($task in $config.Tasks) {
             $desiredDefinition.Settings.StartWhenAvailable = $true
 
             $principal = $desiredDefinition.Principal
-            $principal.UserId    = $principalId
+            if ($isGroupPrincipal) {
+                $principal.GroupId  = $principalId
+            } else {
+                $principal.UserId   = $principalId
+            }
             $principal.LogonType = $logonType
             $principal.RunLevel  = $runLevel
 
@@ -276,7 +280,11 @@ foreach ($task in $config.Tasks) {
         $definition.Settings.StartWhenAvailable = $true
 
         $principal = $definition.Principal
-        $principal.UserId    = $principalId
+        if ($isGroupPrincipal) {
+            $principal.GroupId  = $principalId
+        } else {
+            $principal.UserId   = $principalId
+        }
         $principal.LogonType = $logonType
         $principal.RunLevel  = $runLevel
 
@@ -291,7 +299,7 @@ foreach ($task in $config.Tasks) {
             if ($existingTask) {
                 $rootFolder.DeleteTask($taskName, 0)
             }
-            $registerUserId = if ($isGroupPrincipal) { $principalId } else { $null }
+            $registerUserId = if ($isGroupPrincipal) { $null } else { $null }
             $rootFolder.RegisterTaskDefinition(
                 $taskName,
                 $definition,
