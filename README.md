@@ -8,7 +8,7 @@ This repository contains a PowerShell-based automation toolkit under `app/` with
 - **Admin\***: system-level setup and maintenance tasks (administrator required).
 - **User\***: per-user setup and maintenance tasks (run in user context).
 - **AdminSetup.ps1**: orchestrator that loads configuration and runs scripted tasks.
-- **AdminUserSetup.ps1 / AdminUserSetupFromActiveSetup.ps1**: user-side setup entry points invoked by admin or Active Setup.
+- **AdminDisableOptionalFeatures.ps1**: disables Windows Optional Features (e.g. WorkFolders-Client) declared in config.
 - **UserLogon.* / UserLogonTracker.ps1**: logon-time tasks and telemetry helpers.
 - **Create-Administrator.ps1**: creates or configures a local admin account.
 - **StatusStartup.ps1**: reports or validates startup status.
@@ -62,25 +62,15 @@ $base="https://github.com/bonomani/baseliner/releases";$tmp=".\latest.txt";Invok
 - The setup workflow and profile selection live outside `app/` (see `setup.core.ps1`).
 
 ## Build and publish
-Build the update ZIP:
-```powershell
-.\app\tools\Build-Update.ps1 -Clean -Version "1.0.0" -Zip -UsePayloadFolder
-```
-`VERSION.txt` is written as `v1.0.0` to match the GitHub tag format. The ZIP is named `package_v1.0.0.zip`.
+Build, commit, push and publish a release in one command:
 
-Upload the ZIP, its `.sha256`, and `latest.txt` to the GitHub release:
 ```powershell
-gh release create v1.0.0 --title "v1.0.0" --notes "Release v1.0.0"
-gh release upload v1.0.0 build\package_v1.0.0.zip build\package_v1.0.0.zip.sha256 build\latest.txt --clobber
+.\setup.core.ps1 -Release -Version "1.0.0"
 ```
+
+This builds the ZIP, commits any pending changes, pushes to GitHub, creates the release tag, and uploads the assets (`package_v1.0.0.zip`, `.sha256`, `latest.txt`).
+
 This enables `latest.txt` downloads at `.../releases/latest/download/latest.txt` for auto-update.
-
-Push changes to GitHub:
-```powershell
-git add .
-git commit -m "Release v1.0.0"
-git push
-```
 
 ## License
 Add project license info here.
