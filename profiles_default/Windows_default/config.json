@@ -1006,6 +1006,10 @@
         {
           "Name": "AdminSetupFirefoxDefaultProfile",
           "Schedule": "once"
+        },
+        {
+          "Name": "UserSetMsnLanguage",
+          "Schedule": "once"
         }
       ]
     }
@@ -1330,5 +1334,9 @@
     "Language": "fr-CH",
     "CopyToSystem": true
   },
-  "AdminInstallOpenSSH": {}
+  "AdminInstallOpenSSH": {},
+  "UserSetMsnLanguage": {
+    "Url": "https://www.msn.com/fr-ch",
+    "WaitSec": 20
+  }
 }
