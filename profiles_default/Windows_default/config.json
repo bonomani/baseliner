@@ -900,6 +900,133 @@
             "type": "DWord"
           }
         ]
+      },
+      {
+        "operation": "set-keyvalue",
+        "context": {
+          "key": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent"
+        },
+        "items": [
+          {
+            "name": "DisableWindowsConsumerFeatures",
+            "value": 1,
+            "type": "DWord"
+          }
+        ]
+      },
+      {
+        "operation": "set-keyvalue",
+        "context": {
+          "key": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection"
+        },
+        "items": [
+          {
+            "name": "DoNotShowFeedbackNotifications",
+            "value": 1,
+            "type": "DWord"
+          }
+        ]
+      },
+      {
+        "operation": "set-keyvalue",
+        "context": {
+          "key": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\AdvertisingInfo"
+        },
+        "items": [
+          {
+            "name": "DisabledByGroupPolicy",
+            "value": 1,
+            "type": "DWord"
+          }
+        ]
+      },
+      {
+        "operation": "set-keyvalue",
+        "context": {
+          "key": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System"
+        },
+        "items": [
+          {
+            "name": "EnableActivityFeed",
+            "value": 0,
+            "type": "DWord"
+          },
+          {
+            "name": "PublishUserActivities",
+            "value": 0,
+            "type": "DWord"
+          },
+          {
+            "name": "UploadUserActivities",
+            "value": 0,
+            "type": "DWord"
+          }
+        ]
+      },
+      {
+        "operation": "set-keyvalue",
+        "context": {
+          "key": "HKLM:\\SOFTWARE\\Microsoft\\PolicyManager\\default\\WiFi\\AllowWiFiHotSpotReporting"
+        },
+        "items": [
+          {
+            "name": "Value",
+            "value": 0,
+            "type": "DWord"
+          }
+        ]
+      },
+      {
+        "operation": "set-keyvalue",
+        "context": {
+          "key": "HKLM:\\SOFTWARE\\Microsoft\\PolicyManager\\default\\WiFi\\AllowAutoConnectToWiFiSenseHotspots"
+        },
+        "items": [
+          {
+            "name": "Value",
+            "value": 0,
+            "type": "DWord"
+          }
+        ]
+      },
+      {
+        "operation": "set-keyvalue",
+        "context": {
+          "key": "HKLM:\\SYSTEM\\Maps"
+        },
+        "items": [
+          {
+            "name": "AutoUpdateEnabled",
+            "value": 0,
+            "type": "DWord"
+          }
+        ]
+      },
+      {
+        "operation": "set-keyvalue",
+        "context": {
+          "key": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Feeds"
+        },
+        "items": [
+          {
+            "name": "EnableFeeds",
+            "value": 0,
+            "type": "DWord"
+          }
+        ]
+      },
+      {
+        "operation": "set-keyvalue",
+        "context": {
+          "key": "HKU:\\.DEFAULT\\Control Panel\\Keyboard"
+        },
+        "items": [
+          {
+            "name": "InitialKeyboardIndicators",
+            "value": 2,
+            "type": "DWord"
+          }
+        ]
       }
     ]
   },
@@ -1324,6 +1451,147 @@
           {
             "name": "CloudSearchEnabled",
             "value": 0,
+            "type": "DWord"
+          }
+        ]
+      },
+      {
+        "operation": "set-keyvalue",
+        "context": {
+          "key": "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager"
+        },
+        "items": [
+          {
+            "name": "ContentDeliveryAllowed",
+            "value": 0,
+            "type": "DWord"
+          },
+          {
+            "name": "OemPreInstalledAppsEnabled",
+            "value": 0,
+            "type": "DWord"
+          },
+          {
+            "name": "PreInstalledAppsEnabled",
+            "value": 0,
+            "type": "DWord"
+          },
+          {
+            "name": "PreInstalledAppsEverEnabled",
+            "value": 0,
+            "type": "DWord"
+          },
+          {
+            "name": "SilentInstalledAppsEnabled",
+            "value": 0,
+            "type": "DWord"
+          },
+          {
+            "name": "SubscribedContent-338387Enabled",
+            "value": 0,
+            "type": "DWord"
+          },
+          {
+            "name": "SubscribedContent-338388Enabled",
+            "value": 0,
+            "type": "DWord"
+          },
+          {
+            "name": "SubscribedContent-338389Enabled",
+            "value": 0,
+            "type": "DWord"
+          },
+          {
+            "name": "SubscribedContent-353698Enabled",
+            "value": 0,
+            "type": "DWord"
+          },
+          {
+            "name": "SystemPaneSuggestionsEnabled",
+            "value": 0,
+            "type": "DWord"
+          }
+        ]
+      },
+      {
+        "operation": "set-keyvalue",
+        "context": {
+          "key": "HKCU:\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent"
+        },
+        "items": [
+          {
+            "name": "DisableTailoredExperiencesWithDiagnosticData",
+            "value": 1,
+            "type": "DWord"
+          }
+        ]
+      },
+      {
+        "operation": "set-keyvalue",
+        "context": {
+          "key": "HKCU:\\SOFTWARE\\Microsoft\\Siuf\\Rules"
+        },
+        "items": [
+          {
+            "name": "NumberOfSIUFInPeriod",
+            "value": 0,
+            "type": "DWord"
+          }
+        ]
+      },
+      {
+        "operation": "set-keyvalue",
+        "context": {
+          "key": "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced"
+        },
+        "items": [
+          {
+            "name": "ShowTaskViewButton",
+            "value": 0,
+            "type": "DWord"
+          },
+          {
+            "name": "LaunchTo",
+            "value": 1,
+            "type": "DWord"
+          }
+        ]
+      },
+      {
+        "operation": "set-keyvalue",
+        "context": {
+          "key": "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\\People"
+        },
+        "items": [
+          {
+            "name": "PeopleBand",
+            "value": 0,
+            "type": "DWord"
+          }
+        ]
+      },
+      {
+        "operation": "set-keyvalue",
+        "context": {
+          "key": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Feeds"
+        },
+        "items": [
+          {
+            "name": "ShellFeedsTaskbarViewMode",
+            "value": 2,
+            "type": "DWord"
+          }
+        ]
+      },
+      {
+        "operation": "set-keyvalue",
+        "context": {
+          "key": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer"
+        },
+        "items": [
+          {
+            "name": "HideSCAMeetNow",
+            "value": 1,
             "type": "DWord"
           }
         ]
