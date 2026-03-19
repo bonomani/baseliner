@@ -17,7 +17,7 @@
         "name": "vnc5800",
         "port": 5800,
         "protocol": "TCP",
-        "direction": "Inbound",		
+        "direction": "Inbound",
         "profiles": [
           "Private",
           "Domain"
@@ -27,17 +27,17 @@
         "name": "vnc5900",
         "port": 5900,
         "protocol": "TCP",
-        "direction": "Inbound",		
+        "direction": "Inbound",
         "profiles": [
           "Private",
           "Domain"
         ]
-      },	  
+      },
       {
         "name": "Allow SSH",
         "port": 22,
         "protocol": "TCP",
-        "direction": "Inbound",		
+        "direction": "Inbound",
         "profiles": [
           "Private",
           "Domain"
@@ -56,12 +56,18 @@
       }
     ]
   },
-
   "AdminApplyFirewallRules": {
     "firewallBatchOperations": [
       {
         "operation": "set-firewall-rule",
-        "context": { "direction": "Inbound", "action": "Allow", "profiles": ["Private","Domain"] },
+        "context": {
+          "direction": "Inbound",
+          "action": "Allow",
+          "profiles": [
+            "Private",
+            "Domain"
+          ]
+        },
         "items": [
           {
             "name": "Allow RDP",
@@ -69,18 +75,42 @@
             "service": "TermService",
             "port": 3389,
             "protocol": "TCP",
-            "profiles": ["Private","Domain","Public"]
+            "profiles": [
+              "Private",
+              "Domain",
+              "Public"
+            ]
           },
-          { "name": "vnc5800", "port": 5800, "protocol": "TCP" },
-          { "name": "vnc5900", "port": 5900, "protocol": "TCP" },
-          { "name": "Allow SSH", "port": 22, "protocol": "TCP" },
-          { "name": "Allow ICMP Echo", "protocol": "ICMPv4", "direction": "Inbound", "action": "Allow", "profiles": ["Private","Domain","Public"] }
+          {
+            "name": "vnc5800",
+            "port": 5800,
+            "protocol": "TCP"
+          },
+          {
+            "name": "vnc5900",
+            "port": 5900,
+            "protocol": "TCP"
+          },
+          {
+            "name": "Allow SSH",
+            "port": 22,
+            "protocol": "TCP"
+          },
+          {
+            "name": "Allow ICMP Echo",
+            "protocol": "ICMPv4",
+            "direction": "Inbound",
+            "action": "Allow",
+            "profiles": [
+              "Private",
+              "Domain",
+              "Public"
+            ]
+          }
         ]
       }
     ]
   },
-  
-  
   "AdminApplyNetworkProfile": {
     "network_profile": "Public",
     "fallback_profile": "Public",
@@ -100,16 +130,36 @@
           "proxy": ""
         },
         "items": [
-          { "name": "ultravnc" },
-          { "name": "chocolateygui" },
-          { "name": "7zip" },
-          { "name": "adobereader" },
-          { "name": "ccleaner" },
-          { "name": "choco-cleaner" },
-          { "name": "choco-upgrade-all-at" },
-          { "name": "firefox" },
-          { "name": "ripgrep" },
-          { "name": "notepadplusplus" }
+          {
+            "name": "ultravnc"
+          },
+          {
+            "name": "chocolateygui"
+          },
+          {
+            "name": "7zip"
+          },
+          {
+            "name": "adobereader"
+          },
+          {
+            "name": "ccleaner"
+          },
+          {
+            "name": "choco-cleaner"
+          },
+          {
+            "name": "choco-upgrade-all-at"
+          },
+          {
+            "name": "firefox"
+          },
+          {
+            "name": "ripgrep"
+          },
+          {
+            "name": "notepadplusplus"
+          }
         ]
       }
     ]
@@ -125,37 +175,99 @@
           "folder": "C:\\Users\\Public\\Desktop"
         },
         "items": [
-          { "name": "Administer FileZilla Server.lnk" },
-          { "name": "BCUninstaller.lnk" },
-          { "name": "BleachBit.lnk" },
-          { "name": "CCleaner.lnk" },
-          { "name": "FortiClient VPN.lnk" },
-          { "name": "HP Print Scan Doctor.lnk" },
-          { "name": "HP Scan Assistant.lnk" },
-          { "name": "HP Scan.lnk" },
-          { "name": "Infoniqa ONE Start.lnk" },
-          { "name": "Markdown Monster.lnk" },
-          { "name": "Microsoft Edge.lnk" },
-          { "name": "Modbus Poll.lnk" },
-          { "name": "Nextcloud.lnk" },
-          { "name": "PDFsam Basic.lnk" },
-          { "name": "PatchCleaner.lnk" },
-          { "name": "RVTools.lnk" },
-          { "name": "Adobe Acrobat.lnk" },
-          { "name": "Softerra LDAP Browser 4.5 (64-bit).lnk" },
-          { "name": "Sourcetree Enterprise.lnk" },
-          { "name": "Start FileZilla Server.lnk" },
-          { "name": "Stop FileZilla Server.lnk" },
-          { "name": "TeamViewer.lnk" },
-          { "name": "Thunderbird.lnk" },
-          { "name": "TLauncher.lnk" },
-          { "name": "WinSCP.lnk" },
-          { "name": "Wise Registry Cleaner.lnk" },
-          { "name": "gVim 9.1.lnk" },
-          { "name": "gVim 9.1 Easy.lnk" },
-          { "name": "gVim 9.1 Read-Only.lnk" },
-          { "name": "Ubiquitous Network.url" },
-          { "name": "Technical Building Management Portal.url" }
+          {
+            "name": "Administer FileZilla Server.lnk"
+          },
+          {
+            "name": "BCUninstaller.lnk"
+          },
+          {
+            "name": "BleachBit.lnk"
+          },
+          {
+            "name": "CCleaner.lnk"
+          },
+          {
+            "name": "FortiClient VPN.lnk"
+          },
+          {
+            "name": "HP Print Scan Doctor.lnk"
+          },
+          {
+            "name": "HP Scan Assistant.lnk"
+          },
+          {
+            "name": "HP Scan.lnk"
+          },
+          {
+            "name": "Infoniqa ONE Start.lnk"
+          },
+          {
+            "name": "Markdown Monster.lnk"
+          },
+          {
+            "name": "Microsoft Edge.lnk"
+          },
+          {
+            "name": "Modbus Poll.lnk"
+          },
+          {
+            "name": "Nextcloud.lnk"
+          },
+          {
+            "name": "PDFsam Basic.lnk"
+          },
+          {
+            "name": "PatchCleaner.lnk"
+          },
+          {
+            "name": "RVTools.lnk"
+          },
+          {
+            "name": "Adobe Acrobat.lnk"
+          },
+          {
+            "name": "Softerra LDAP Browser 4.5 (64-bit).lnk"
+          },
+          {
+            "name": "Sourcetree Enterprise.lnk"
+          },
+          {
+            "name": "Start FileZilla Server.lnk"
+          },
+          {
+            "name": "Stop FileZilla Server.lnk"
+          },
+          {
+            "name": "TeamViewer.lnk"
+          },
+          {
+            "name": "Thunderbird.lnk"
+          },
+          {
+            "name": "TLauncher.lnk"
+          },
+          {
+            "name": "WinSCP.lnk"
+          },
+          {
+            "name": "Wise Registry Cleaner.lnk"
+          },
+          {
+            "name": "gVim 9.1.lnk"
+          },
+          {
+            "name": "gVim 9.1 Easy.lnk"
+          },
+          {
+            "name": "gVim 9.1 Read-Only.lnk"
+          },
+          {
+            "name": "Ubiquitous Network.url"
+          },
+          {
+            "name": "Technical Building Management Portal.url"
+          }
         ]
       },
       {
@@ -169,8 +281,6 @@
       }
     ]
   },
-  
-  
   "AdminRegularAdminTasks": {
     "Script": {
       "Folder": "{{path:{{scriptroot}}}}",
@@ -203,42 +313,34 @@
       "Microsoft.BingWeather",
       "Microsoft.BingSports",
       "Microsoft.BingFinance",
-
       "Microsoft.GamingApp",
       "Microsoft.MicrosoftJournal",
       "Microsoft.MicrosoftOfficeHub",
       "Microsoft.MicrosoftSolitaireCollection",
-
       "Microsoft.OutlookForWindows",
       "Microsoft.Todos",
       "Microsoft.Whiteboard",
-
       "Microsoft.Windows.DevHome",
       "Microsoft.WindowsAlarms",
       "Microsoft.WindowsCamera",
       "Microsoft.WindowsFeedbackHub",
       "Microsoft.WindowsMaps",
       "Microsoft.WindowsSoundRecorder",
-
       "Microsoft.Xbox.TCUI",
       "Microsoft.XboxGamingOverlay",
       "Microsoft.XboxIdentityProvider",
       "Microsoft.XboxSpeechToTextOverlay",
-
       "Microsoft.YourPhone",
       "Microsoft.ZuneMusic",
-
       "MicrosoftCorporationII.MicrosoftFamily",
       "MicrosoftWindows.Client.WebExperience",
       "MicrosoftWindows.CrossDevice",
-
       "Microsoft.GetHelp",
       "Microsoft.Getstarted",
       "Microsoft.People",
       "Microsoft.MixedReality.Portal",
       "Microsoft.PowerAutomateDesktop",
       "Microsoft.549981C3F5F10",
-
       "Microsoft.MicrosoftStickyNotes",
       "Microsoft.WindowsNarratorQuickStart"
     ]
@@ -283,6 +385,9 @@
           "Name": "AdminWindows11"
         },
         {
+          "Name": "AdminSetLanguage"
+        },
+        {
           "Name": "AdminPublicDesktop"
         },
         {
@@ -302,6 +407,9 @@
         },
         {
           "Name": "AdminInstallChoco"
+        },
+        {
+          "Name": "AdminInstallOpenSSH"
         },
         {
           "Name": "AdminInstallNppCompare"
@@ -654,7 +762,6 @@
       }
     ]
   },
-  
   "AdminWindows11": {
     "registryBatchOperations": [
       {
@@ -796,35 +903,69 @@
       }
     ]
   },
-  
   "UserDesktop": {
     "fileBatchOperations": [
       {
         "operation": "remove-file",
-        "context": { "folder": "%USERPROFILE%\\Desktop" },
+        "context": {
+          "folder": "%USERPROFILE%\\Desktop"
+        },
         "items": [
-          { "name": "Adobe Acrobat.lnk" },
-          { "name": "AnywhereUSB Manager.lnk" },
-          { "name": "balenaEtcher.lnk" },
-          { "name": "CurseForge.lnk" },
-          { "name": "Docker Desktop.lnk" },
-          { "name": "GIMP 3.0.6.lnk" },
-          { "name": "GeTax PM 2024.lnk" },
-          { "name": "Google Chrome.lnk" },
-          { "name": "MicroSIP.lnk" },
-          { "name": "Microsoft Edge.lnk" },
-          { "name": "Nmap.lnk" },
-          { "name": "Opera GX.lnk" },
-          { "name": "Signal.lnk" },
-          { "name": "Telegram.lnk" },
-          { "name": "Wondershare MobileTrans.lnk" },
-          { "name": "Zenmap GUI.lnk" },
-          { "name": "Technical Building Management Portal.url" }
+          {
+            "name": "Adobe Acrobat.lnk"
+          },
+          {
+            "name": "AnywhereUSB Manager.lnk"
+          },
+          {
+            "name": "balenaEtcher.lnk"
+          },
+          {
+            "name": "CurseForge.lnk"
+          },
+          {
+            "name": "Docker Desktop.lnk"
+          },
+          {
+            "name": "GIMP 3.0.6.lnk"
+          },
+          {
+            "name": "GeTax PM 2024.lnk"
+          },
+          {
+            "name": "Google Chrome.lnk"
+          },
+          {
+            "name": "MicroSIP.lnk"
+          },
+          {
+            "name": "Microsoft Edge.lnk"
+          },
+          {
+            "name": "Nmap.lnk"
+          },
+          {
+            "name": "Opera GX.lnk"
+          },
+          {
+            "name": "Signal.lnk"
+          },
+          {
+            "name": "Telegram.lnk"
+          },
+          {
+            "name": "Wondershare MobileTrans.lnk"
+          },
+          {
+            "name": "Zenmap GUI.lnk"
+          },
+          {
+            "name": "Technical Building Management Portal.url"
+          }
         ]
       }
     ]
   },
-  
   "UserDisableStartup": {
     "VerboseMode": true,
     "LogLevel": "INFO",
@@ -1184,5 +1325,10 @@
         ]
       }
     ]
-  }
+  },
+  "AdminSetLanguage": {
+    "Language": "fr-CH",
+    "CopyToSystem": true
+  },
+  "AdminInstallOpenSSH": {}
 }
