@@ -23,10 +23,13 @@ Practical expectations:
 - Companion frameworks:
   - UIC: https://github.com/bonomani/uic
   - UCC: https://github.com/bonomani/ucc
+  - TIC: https://github.com/bonomani/tic
   - TIC: local framework in `tic/` (Test Intent Contract)
   - UIC local WSL: `/home/bc/repos/github/bonomani/uic`
   - UCC local WSL: `/home/bc/repos/github/bonomani/ucc`
+  - TIC local WSL: `/home/bc/repos/github/bonomani/tic`
   - UIC local Windows: `/mnt/c/scripts/Uic`
   - UCC local Windows: `/mnt/c/scripts/Ucc`
+  - TIC local Windows: `/mnt/c/scripts/Tic`
 
 If this file conflicts with a direct user instruction, follow the user instruction.
