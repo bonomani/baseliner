@@ -17,6 +17,7 @@ Practical expectations:
 
 - Prefer Linux/WSL tools for repository maintenance and Git operations.
 - Use the Windows checkout for Windows-specific execution and testing.
+- Run tests only on the Windows checkout unless the user explicitly asks for a WSL-only check.
 - Keep local/editor/runtime artifacts ignored when they are not part of the release payload.
 - If the user says "run the test" without naming a script, run `test/RunAllTests.ps1` in the Windows checkout by default.
 - If the user explicitly asks for update/release validation, run `update/test/RunAllTests.ps1` instead.
