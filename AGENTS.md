@@ -23,5 +23,9 @@ Practical expectations:
 - Companion frameworks:
   - UIC: https://github.com/bonomani/uic
   - UCC: https://github.com/bonomani/ucc
+  - UIC local WSL: `/home/bc/repos/github/bonomani/uic`
+  - UCC local WSL: `/home/bc/repos/github/bonomani/ucc`
+  - UIC local Windows: `/mnt/c/scripts/Uic`
+  - UCC local Windows: `/mnt/c/scripts/Ucc`
 
 If this file conflicts with a direct user instruction, follow the user instruction.
