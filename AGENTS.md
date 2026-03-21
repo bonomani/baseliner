@@ -21,6 +21,15 @@ Practical expectations:
 - Keep local/editor/runtime artifacts ignored when they are not part of the release payload.
 - If the user says "run the test" without naming a script, run `test/RunAllTests.ps1` in the Windows checkout by default.
 - If the user explicitly asks for update/release validation, run `update/test/RunAllTests.ps1` instead.
+- Release flow:
+  - make the release change in the WSL checkout
+  - run the relevant tests in the Windows checkout when the release touches update/setup payloads
+  - bump the version/tag in the WSL checkout
+  - commit and push `master` from WSL
+  - create the GitHub release from the pushed tag
+  - verify the release is `isDraft: false` and `isPrerelease: true` for alpha releases
+  - if the repo has a companion mirror or installer tap, update and push that repo too
+  - after pushing from WSL, update the Windows checkout with `git pull --ff-only origin master`
 - Companion frameworks:
   - UIC: https://github.com/bonomani/uic
   - UCC: https://github.com/bonomani/ucc
